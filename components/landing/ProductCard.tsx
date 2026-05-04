@@ -9,6 +9,7 @@ import { useApp } from "@/components/AppProvider";
 import { useBatchRealtime } from "@/lib/realtime";
 import { currentPriceCents } from "@/lib/pricing";
 import { formatPrice } from "@/lib/utils";
+import { categoryIcon, categoryLabel } from "@/lib/categories";
 import type { ProductWithBatch } from "@/lib/types";
 import { Info, Minus, Plus } from "lucide-react";
 
@@ -43,6 +44,8 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
   const soldOut = remaining === 0;
   const disabled = closed || soldOut;
   const atMax = inCart >= Math.min(10, remaining);
+  const CategoryIcon = categoryIcon(product.category);
+  const categoryName = categoryLabel(product.category);
 
   return (
     <article className="group flex flex-col gap-4 rounded-3xl bg-white p-3 hairline transition hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-16px_rgba(0,0,0,0.18)]">
@@ -72,6 +75,14 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
         >
           <Info size={14} strokeWidth={2} />
         </button>
+
+        <div
+          className="absolute left-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/80 text-ink-700 backdrop-blur"
+          title={categoryName}
+          aria-label={categoryName}
+        >
+          <CategoryIcon size={14} strokeWidth={2} />
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 px-1.5 pb-1.5">

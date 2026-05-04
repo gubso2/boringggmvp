@@ -35,6 +35,8 @@ export type Product = {
   specs: ProductSpec[];
   /** One-sentence headline health / wellness benefit. */
   health_benefit: string | null;
+  /** Slug used to pick the category icon shown on the card. */
+  category: string;
   created_at: string;
 };
 

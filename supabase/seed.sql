@@ -258,3 +258,21 @@ from seeded;
 -- margin curve (20% / 30% / 40% / 50% markup at 25/50/75/100% MOQ).
 update public.products
    set price_curve = public.margin_curve(est_production_cost_cents);
+
+-- Tag each product with a category slug so the ProductCard can show its icon.
+update public.products
+   set category = case name
+     when 'Wireless ANC Earbuds'                 then 'audio'
+     when '75% Mechanical Keyboard'              then 'desk'
+     when 'Heavyweight Cotton Hoodie'            then 'apparel'
+     when 'Knit Runner Sneakers'                 then 'footwear'
+     when 'French Press 1L'                      then 'coffee'
+     when 'Stonewashed Linen Sheet Set'          then 'bedroom'
+     when 'Smart Hydration Bottle'               then 'hydration'
+     when 'Slim Bifold Leather Wallet'           then 'carry'
+     when 'Bluetooth Item Tracker (4-pack)'      then 'gadgets'
+     when 'Adjustable Dumbbell Pair (5–50 lb)'   then 'fitness'
+     when 'Ceramic Knife 5-piece Set'            then 'kitchen'
+     when 'Weighted Blanket 15 lb'               then 'sleep'
+     else 'general'
+   end;
