@@ -1,0 +1,61 @@
+export type PriceTier = {
+  /** Cumulative fill fraction at which this tier ends. e.g. 0.2 = first 20% */
+  threshold: number;
+  /** Price for units priced under this tier */
+  price_cents: number;
+};
+
+export type Product = {
+  id: string;
+  name: string;
+  image_url: string;
+  description: string | null;
+  moq: number;
+  base_price_cents: number;
+  price_curve: PriceTier[];
+  manufacturer: string;
+  manufacturer_clients: string[];
+  est_production_cost_cents: number;
+  comparable_brand_name: string;
+  comparable_brand_price_cents: number;
+  created_at: string;
+};
+
+export type Batch = {
+  id: string;
+  product_id: string;
+  start_at: string;
+  end_at: string;
+  units_reserved: number;
+  status: "active" | "closed" | "fulfilled";
+  created_at: string;
+};
+
+export type Reservation = {
+  id: string;
+  user_id: string;
+  batch_id: string;
+  quantity: number;
+  unit_price_cents: number;
+  total_paid_cents: number;
+  stripe_payment_intent_id: string | null;
+  status: "pending" | "paid" | "refunded";
+  created_at: string;
+  paid_at: string | null;
+  refunded_at: string | null;
+};
+
+export type Referral = {
+  id: string;
+  inviter_id: string;
+  invited_phone: string;
+  created_at: string;
+};
+
+export type ProductWithBatch = Product & {
+  batch: Batch;
+};
+
+export type ReservationWithProduct = Reservation & {
+  batch: Batch & { product: Product };
+};
