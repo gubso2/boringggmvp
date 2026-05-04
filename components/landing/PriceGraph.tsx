@@ -106,13 +106,26 @@ export function PriceGraph({ curve, moq, unitsReserved }: Props) {
       </svg>
       <div className="mt-1 flex items-center justify-between text-[11px]">
         <span className="text-ink-700">
-          Now <span className="font-semibold text-ink-950">{formatPriceCompact(current.price_cents)}</span>
+          Now{" "}
+          <span className="font-semibold text-ink-950">
+            {formatPriceCompact(current.price_cents)}
+          </span>
         </span>
         {next ? (
-          <span className="text-ink-400">
-            → {formatPriceCompact(next.price_cents)} at{" "}
-            {Math.round(current.threshold * 100)}% full
-          </span>
+          (() => {
+            // Next tier kicks in once filled > current.threshold,
+            // i.e. one unit past floor(threshold * moq).
+            const unitsLeft = Math.max(
+              1,
+              Math.floor(current.threshold * moq) - unitsReserved + 1,
+            );
+            return (
+              <span className="text-ink-400">
+                → {formatPriceCompact(next.price_cents)} in {unitsLeft}{" "}
+                {unitsLeft === 1 ? "unit" : "units"}
+              </span>
+            );
+          })()
         ) : (
           <span className="text-ink-400">Top tier</span>
         )}
