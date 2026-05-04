@@ -1,6 +1,35 @@
 import type { PriceTier } from "./types";
 
 /**
+ * Pricing tiers expressed as { fill threshold, markup over production cost }.
+ * Each tier covers 25% of the MOQ; markup ramps from 20% → 50% as the batch fills.
+ *
+ *  0–25% of MOQ → cost × 1.20
+ * 25–50%        → cost × 1.30
+ * 50–75%        → cost × 1.40
+ * 75–100%       → cost × 1.50
+ */
+export const MARGIN_TIERS: ReadonlyArray<{ threshold: number; markup: number }> =
+  [
+    { threshold: 0.25, markup: 0.2 },
+    { threshold: 0.5, markup: 0.3 },
+    { threshold: 0.75, markup: 0.4 },
+    { threshold: 1.0, markup: 0.5 },
+  ];
+
+/**
+ * Build the live price curve for a product from its production cost. Always
+ * use this — DB-stored price_curve is kept for backward compat but ignored at
+ * runtime so changing MARGIN_TIERS in code propagates everywhere.
+ */
+export function marginCurve(costCents: number): PriceTier[] {
+  return MARGIN_TIERS.map((t) => ({
+    threshold: t.threshold,
+    price_cents: Math.round(costCents * (1 + t.markup)),
+  }));
+}
+
+/**
  * Returns the price (cents) for a unit reserved RIGHT NOW given current fill.
  *
  * Curve is interpreted as: price tier applies while cumulative fill ≤ threshold.
@@ -19,6 +48,17 @@ export function currentPriceCents(
     if (filled <= tier.threshold) return tier.price_cents;
   }
   return curve[curve.length - 1].price_cents;
+}
+
+/**
+ * Convenience: compute current price directly from production cost.
+ */
+export function currentPriceCentsFromCost(
+  unitsReserved: number,
+  moq: number,
+  costCents: number,
+): number {
+  return currentPriceCents(unitsReserved, moq, marginCurve(costCents));
 }
 
 /**

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getStripe } from "@/lib/stripe/server";
-import { currentPriceCents } from "@/lib/pricing";
+import { currentPriceCentsFromCost } from "@/lib/pricing";
 import { INVITES_REQUIRED } from "@/lib/invites";
 import type { Batch, Product } from "@/lib/types";
 
@@ -103,10 +103,10 @@ export async function POST(req: Request) {
         { status: 409 },
       );
     }
-    const basePrice = currentPriceCents(
+    const basePrice = currentPriceCentsFromCost(
       batch.units_reserved,
       batch.product.moq,
-      batch.product.price_curve,
+      batch.product.est_production_cost_cents,
     );
     const unitPrice = basePrice * multiplier;
     lines.push({

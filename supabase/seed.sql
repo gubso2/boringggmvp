@@ -1,7 +1,11 @@
 -- =====================================================================
 -- Boringgg — seed data: 12 products + 12 active batches
 -- All prices are USD cents. Curves use cumulative thresholds.
--- Run AFTER 0001_init.sql AND 0002_product_details.sql
+-- Run AFTER 0001_init.sql, 0002_product_details.sql, and 0003_margin_pricing.sql
+--
+-- NB: the inline price_curve JSON in each row is overwritten at the bottom
+-- of this file with a derived margin_curve(cost) — we keep the literal as
+-- a placeholder so existing inserts still satisfy NOT NULL.
 -- =====================================================================
 
 truncate table public.reservations restart identity cascade;
@@ -249,3 +253,8 @@ select
   now() + interval '7 days',
   greatest(1, (moq * (0.08 + random() * 0.47))::int)
 from seeded;
+
+-- Override the placeholder price_curve on every product with the derived
+-- margin curve (20% / 30% / 40% / 50% markup at 25/50/75/100% MOQ).
+update public.products
+   set price_curve = public.margin_curve(est_production_cost_cents);

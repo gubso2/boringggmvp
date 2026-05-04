@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "./supabase/server";
+import { marginCurve } from "./pricing";
 import type {
   Batch,
   Product,
@@ -6,8 +7,19 @@ import type {
   Reservation,
 } from "./types";
 
+/**
+ * The DB stores a `price_curve` per product, but at runtime we always derive
+ * the curve from `est_production_cost_cents` so that MARGIN_TIERS in code is
+ * the single source of truth.
+ */
+function withDerivedCurve<P extends Product>(product: P): P {
+  return {
+    ...product,
+    price_curve: marginCurve(product.est_production_cost_cents),
+  };
+}
+
 export async function getProductsWithBatches(): Promise<ProductWithBatch[]> {
-  // products + batches both have public-read RLS policies.
   const supabase = await createSupabaseServerClient();
   const { data: products, error: pErr } = await supabase
     .from("products")
@@ -27,7 +39,7 @@ export async function getProductsWithBatches(): Promise<ProductWithBatch[]> {
   return (products as Product[])
     .map((p) => {
       const batch = byProduct.get(p.id);
-      return batch ? { ...p, batch } : null;
+      return batch ? { ...withDerivedCurve(p), batch } : null;
     })
     .filter((x): x is ProductWithBatch => x !== null);
 }
@@ -52,7 +64,7 @@ export async function getCurrentUserReservations(): Promise<
   return (data as Row[]).map((r) => ({
     ...r,
     batch: r.batch,
-    product: r.batch.product,
+    product: withDerivedCurve(r.batch.product),
   }));
 }
 
