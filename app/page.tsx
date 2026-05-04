@@ -6,6 +6,7 @@ import { Footer } from "@/components/landing/Footer";
 import { StickyNav } from "@/components/nav/StickyNav";
 import { ModalManager } from "@/components/ModalManager";
 import { AppProvider } from "@/components/AppProvider";
+import { CartBar } from "@/components/cart/CartBar";
 import {
   getProductsWithBatches,
   getInviteCount,
@@ -34,6 +35,7 @@ export default async function Home() {
         <About />
       </main>
       <Footer />
+      <CartBar />
       <ModalManager />
     </AppProvider>
   );

@@ -11,15 +11,21 @@ import {
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { INVITES_REQUIRED } from "@/lib/invites";
+import { currentPriceCents } from "@/lib/pricing";
 import type { ProductWithBatch } from "@/lib/types";
 
 type Modal =
   | { kind: "none" }
   | { kind: "auth"; next?: () => void }
   | { kind: "info"; product: ProductWithBatch }
-  | { kind: "join"; product: ProductWithBatch }
+  | { kind: "checkout" }
   | { kind: "invite"; next?: () => void }
   | { kind: "refund"; reservationId: string; productName: string };
+
+type CartItem = {
+  product: ProductWithBatch;
+  quantity: number;
+};
 
 type Ctx = {
   user: User | null;
@@ -29,8 +35,16 @@ type Ctx = {
   modal: Modal;
   setModal: (m: Modal) => void;
   signOut: () => Promise<void>;
-  /** Click-to-join handler used by ProductCard. */
-  joinClicked: (product: ProductWithBatch) => void;
+  // Cart
+  cartItems: CartItem[];
+  cartCount: number;
+  cartSubtotalCents: number;
+  setCartQuantity: (product: ProductWithBatch, quantity: number) => void;
+  incrementCart: (product: ProductWithBatch) => void;
+  decrementCart: (product: ProductWithBatch) => void;
+  clearCart: () => void;
+  /** Open checkout, prompting auth first if needed. */
+  startCheckout: () => void;
 };
 
 const AppCtx = createContext<Ctx | null>(null);
@@ -54,6 +68,7 @@ export function AppProvider({
   const [user, setUser] = useState<User | null>(initialUser);
   const [inviteCount, setInviteCount] = useState(initialInviteCount);
   const [modal, setModal] = useState<Modal>({ kind: "none" });
+  const [cart, setCart] = useState<Map<string, CartItem>>(new Map());
 
   const refreshInvites = useCallback(async () => {
     if (!user) {
@@ -74,7 +89,6 @@ export function AppProvider({
     return () => data.subscription.unsubscribe();
   }, [supabase]);
 
-  // When user changes, sync invite count
   useEffect(() => {
     refreshInvites();
   }, [refreshInvites]);
@@ -85,19 +99,82 @@ export function AppProvider({
     setInviteCount(0);
   }, [supabase]);
 
-  const joinClicked = useCallback(
-    (product: ProductWithBatch) => {
-      if (!user) {
-        setModal({
-          kind: "auth",
-          next: () => setModal({ kind: "join", product }),
-        });
-      } else {
-        setModal({ kind: "join", product });
-      }
+  const setCartQuantity = useCallback(
+    (product: ProductWithBatch, quantity: number) => {
+      setCart((prev) => {
+        const next = new Map(prev);
+        const max = Math.max(
+          0,
+          product.moq - product.batch.units_reserved,
+        );
+        const clamped = Math.max(0, Math.min(10, Math.min(max, quantity)));
+        if (clamped <= 0) next.delete(product.id);
+        else next.set(product.id, { product, quantity: clamped });
+        return next;
+      });
     },
-    [user],
+    [],
   );
+
+  const incrementCart = useCallback(
+    (product: ProductWithBatch) => {
+      setCart((prev) => {
+        const cur = prev.get(product.id)?.quantity ?? 0;
+        const next = new Map(prev);
+        const max = Math.max(0, product.moq - product.batch.units_reserved);
+        const clamped = Math.max(0, Math.min(10, Math.min(max, cur + 1)));
+        if (clamped <= 0) next.delete(product.id);
+        else next.set(product.id, { product, quantity: clamped });
+        return next;
+      });
+    },
+    [],
+  );
+
+  const decrementCart = useCallback(
+    (product: ProductWithBatch) => {
+      setCart((prev) => {
+        const cur = prev.get(product.id)?.quantity ?? 0;
+        const next = new Map(prev);
+        const target = cur - 1;
+        if (target <= 0) next.delete(product.id);
+        else next.set(product.id, { product, quantity: target });
+        return next;
+      });
+    },
+    [],
+  );
+
+  const clearCart = useCallback(() => setCart(new Map()), []);
+
+  const cartItems = useMemo(() => Array.from(cart.values()), [cart]);
+  const cartCount = useMemo(
+    () => cartItems.reduce((s, i) => s + i.quantity, 0),
+    [cartItems],
+  );
+  const cartSubtotalCents = useMemo(
+    () =>
+      cartItems.reduce((sum, item) => {
+        const price = currentPriceCents(
+          item.product.batch.units_reserved,
+          item.product.moq,
+          item.product.price_curve,
+        );
+        return sum + price * item.quantity;
+      }, 0),
+    [cartItems],
+  );
+
+  const startCheckout = useCallback(() => {
+    if (!user) {
+      setModal({
+        kind: "auth",
+        next: () => setModal({ kind: "checkout" }),
+      });
+    } else {
+      setModal({ kind: "checkout" });
+    }
+  }, [user]);
 
   const value: Ctx = {
     user,
@@ -107,7 +184,14 @@ export function AppProvider({
     modal,
     setModal,
     signOut,
-    joinClicked,
+    cartItems,
+    cartCount,
+    cartSubtotalCents,
+    setCartQuantity,
+    incrementCart,
+    decrementCart,
+    clearCart,
+    startCheckout,
   };
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;

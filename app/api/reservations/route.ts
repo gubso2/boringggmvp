@@ -8,8 +8,16 @@ import { INVITES_REQUIRED } from "@/lib/invites";
 import type { Batch, Product } from "@/lib/types";
 
 const Body = z.object({
-  batch_id: z.string().uuid(),
-  quantity: z.number().int().min(1).max(10),
+  items: z
+    .array(
+      z.object({
+        batch_id: z.string().uuid(),
+        quantity: z.number().int().min(1).max(10),
+      }),
+    )
+    .min(1)
+    .max(20),
+  pay_double: z.boolean().default(false),
 });
 
 export async function POST(req: Request) {
@@ -33,83 +41,123 @@ export async function POST(req: Request) {
 
   const admin = createSupabaseAdminClient();
 
-  // Invite gate
+  // Invite gate — bypassed only when paying double
   const { count: invites } = await admin
     .from("referrals")
     .select("*", { count: "exact", head: true })
     .eq("inviter_id", user.id);
-  if ((invites ?? 0) < INVITES_REQUIRED) {
+  const hasInvited = (invites ?? 0) >= INVITES_REQUIRED;
+  if (!hasInvited && !body.pay_double) {
     return NextResponse.json(
       {
-        error: `Invite ${INVITES_REQUIRED - (invites ?? 0)} more friend(s) to unlock.`,
+        error: `Invite ${INVITES_REQUIRED - (invites ?? 0)} more friend(s) — or check 'Pay double' to skip.`,
       },
       { status: 403 },
     );
   }
 
-  // Fetch batch + product
-  const { data: batch, error: batchErr } = await admin
+  // Fetch all batches in a single query
+  const batchIds = body.items.map((i) => i.batch_id);
+  const { data: batches, error: batchErr } = await admin
     .from("batches")
     .select("*, product:products(*)")
-    .eq("id", body.batch_id)
-    .single<Batch & { product: Product }>();
-  if (batchErr || !batch) {
-    return NextResponse.json({ error: "Batch not found" }, { status: 404 });
-  }
-
-  if (batch.status !== "active" || new Date(batch.end_at) < new Date()) {
-    return NextResponse.json({ error: "Batch is closed" }, { status: 409 });
-  }
-  if (batch.units_reserved + body.quantity > batch.product.moq) {
+    .in("id", batchIds);
+  if (batchErr || !batches) {
     return NextResponse.json(
-      { error: "Not enough units left in this batch" },
-      { status: 409 },
-    );
-  }
-
-  const unitPrice = currentPriceCents(
-    batch.units_reserved,
-    batch.product.moq,
-    batch.product.price_curve,
-  );
-  const total = unitPrice * body.quantity;
-
-  // Insert pending reservation FIRST so we have an id to attach to PaymentIntent
-  const { data: reservation, error: resErr } = await admin
-    .from("reservations")
-    .insert({
-      user_id: user.id,
-      batch_id: batch.id,
-      quantity: body.quantity,
-      unit_price_cents: unitPrice,
-      total_paid_cents: total,
-      status: "pending",
-    })
-    .select("*")
-    .single();
-  if (resErr || !reservation) {
-    return NextResponse.json(
-      { error: resErr?.message ?? "Could not create reservation" },
+      { error: batchErr?.message ?? "Could not load batches" },
       { status: 500 },
     );
   }
 
+  type BatchWithProduct = Batch & { product: Product };
+  const batchById = new Map<string, BatchWithProduct>();
+  for (const b of batches as BatchWithProduct[]) batchById.set(b.id, b);
+
+  // Validate every line: batch exists, active, and has stock for the quantity
+  const now = Date.now();
+  const multiplier = !hasInvited && body.pay_double ? 2 : 1;
+  const lines: Array<{
+    batch_id: string;
+    quantity: number;
+    unit_price_cents: number;
+    total_cents: number;
+  }> = [];
+
+  for (const item of body.items) {
+    const batch = batchById.get(item.batch_id);
+    if (!batch) {
+      return NextResponse.json(
+        { error: `Batch ${item.batch_id} not found` },
+        { status: 404 },
+      );
+    }
+    if (batch.status !== "active" || new Date(batch.end_at).getTime() < now) {
+      return NextResponse.json(
+        { error: `${batch.product.name} batch has closed` },
+        { status: 409 },
+      );
+    }
+    if (batch.units_reserved + item.quantity > batch.product.moq) {
+      return NextResponse.json(
+        { error: `Not enough units left in ${batch.product.name}` },
+        { status: 409 },
+      );
+    }
+    const basePrice = currentPriceCents(
+      batch.units_reserved,
+      batch.product.moq,
+      batch.product.price_curve,
+    );
+    const unitPrice = basePrice * multiplier;
+    lines.push({
+      batch_id: batch.id,
+      quantity: item.quantity,
+      unit_price_cents: unitPrice,
+      total_cents: unitPrice * item.quantity,
+    });
+  }
+
+  const grandTotal = lines.reduce((s, l) => s + l.total_cents, 0);
+
+  // Insert pending reservations
+  const { data: reservations, error: insertErr } = await admin
+    .from("reservations")
+    .insert(
+      lines.map((l) => ({
+        user_id: user.id,
+        batch_id: l.batch_id,
+        quantity: l.quantity,
+        unit_price_cents: l.unit_price_cents,
+        total_paid_cents: l.total_cents,
+        status: "pending",
+      })),
+    )
+    .select("id");
+
+  if (insertErr || !reservations) {
+    return NextResponse.json(
+      { error: insertErr?.message ?? "Could not create reservations" },
+      { status: 500 },
+    );
+  }
+
+  const reservationIds = reservations.map((r) => r.id);
+
   let intent;
   try {
     intent = await getStripe().paymentIntents.create({
-      amount: total,
+      amount: grandTotal,
       currency: "usd",
       automatic_payment_methods: { enabled: true },
       metadata: {
-        reservation_id: reservation.id,
-        batch_id: batch.id,
-        product_id: batch.product.id,
+        // comma-separated UUIDs; Stripe metadata values must be strings ≤500 chars
+        reservation_ids: reservationIds.join(","),
         user_id: user.id,
+        pay_double: String(multiplier === 2),
       },
     });
   } catch (e) {
-    // Clean up the pending row if Stripe failed
-    await admin.from("reservations").delete().eq("id", reservation.id);
+    await admin.from("reservations").delete().in("id", reservationIds);
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Stripe error" },
       { status: 502 },
@@ -119,10 +167,11 @@ export async function POST(req: Request) {
   await admin
     .from("reservations")
     .update({ stripe_payment_intent_id: intent.id })
-    .eq("id", reservation.id);
+    .in("id", reservationIds);
 
   return NextResponse.json({
     client_secret: intent.client_secret,
-    reservation_id: reservation.id,
+    reservation_ids: reservationIds,
+    amount: grandTotal,
   });
 }

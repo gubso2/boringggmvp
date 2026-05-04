@@ -1,22 +1,35 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProgressBar } from "@/components/shared/ProgressBar";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { PriceGraph } from "@/components/landing/PriceGraph";
-import { Button } from "@/components/shared/Button";
 import { useApp } from "@/components/AppProvider";
 import { useBatchRealtime } from "@/lib/realtime";
 import { currentPriceCents } from "@/lib/pricing";
 import { formatPrice } from "@/lib/utils";
 import type { ProductWithBatch } from "@/lib/types";
-import { Info } from "lucide-react";
+import { Info, Minus, Plus } from "lucide-react";
 
 export function ProductCard({ product }: { product: ProductWithBatch }) {
-  const { setModal, joinClicked } = useApp();
+  const { setModal, cartItems, setCartQuantity, incrementCart, decrementCart } =
+    useApp();
   const batch = useBatchRealtime(product.batch);
   const [imgFailed, setImgFailed] = useState(false);
+
+  const productWithLatestBatch: ProductWithBatch = { ...product, batch };
+  const inCart =
+    cartItems.find((i) => i.product.id === product.id)?.quantity ?? 0;
+
+  // Keep the cart entry's batch state in sync with realtime so the cart total
+  // is always computed from the latest units_reserved.
+  useEffect(() => {
+    if (inCart > 0) {
+      setCartQuantity(productWithLatestBatch, inCart);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [batch.units_reserved]);
 
   const filled = Math.max(0, Math.min(1, batch.units_reserved / product.moq));
   const price = currentPriceCents(
@@ -26,6 +39,10 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
   );
   const closed =
     batch.status !== "active" || new Date(batch.end_at) < new Date();
+  const remaining = Math.max(0, product.moq - batch.units_reserved);
+  const soldOut = remaining === 0;
+  const disabled = closed || soldOut;
+  const atMax = inCart >= Math.min(10, remaining);
 
   return (
     <article className="group flex flex-col gap-4 rounded-3xl bg-white p-3 hairline transition hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-16px_rgba(0,0,0,0.18)]">
@@ -47,7 +64,9 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
 
         <button
           type="button"
-          onClick={() => setModal({ kind: "info", product: { ...product, batch } })}
+          onClick={() =>
+            setModal({ kind: "info", product: productWithLatestBatch })
+          }
           className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/80 text-ink-700 backdrop-blur transition hover:bg-white hover:text-ink-950"
           aria-label="More information"
         >
@@ -70,7 +89,6 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
           </div>
         </div>
 
-        {/* MOQ progress */}
         <div>
           <div className="mb-1.5 flex items-center justify-between text-[11px]">
             <span className="text-ink-600">
@@ -84,25 +102,46 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
           <ProgressBar value={filled} />
         </div>
 
-        {/* Mini price graph */}
         <PriceGraph
           curve={product.price_curve}
           moq={product.moq}
           unitsReserved={batch.units_reserved}
         />
 
-        <Button
-          size="md"
-          className="w-full"
-          onClick={() => joinClicked({ ...product, batch })}
-          disabled={closed || batch.units_reserved >= product.moq}
-        >
-          {closed
-            ? "Closed"
-            : batch.units_reserved >= product.moq
-              ? "Sold out"
-              : "Join batch"}
-        </Button>
+        {/* Quantity stepper — minus left, plus right */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => decrementCart(productWithLatestBatch)}
+            disabled={disabled || inCart === 0}
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white hairline text-ink-700 transition hover:bg-ink-50 disabled:opacity-30"
+            aria-label="Decrease quantity"
+          >
+            <Minus size={16} strokeWidth={2} />
+          </button>
+          <div className="flex h-10 flex-1 items-center justify-center rounded-full bg-ink-50 text-sm font-medium tabular-nums text-ink-950">
+            {disabled ? (
+              <span className="text-xs uppercase tracking-wide text-ink-500">
+                {closed ? "Closed" : "Sold out"}
+              </span>
+            ) : inCart > 0 ? (
+              <>
+                {inCart} <span className="ml-1.5 text-ink-500">in cart</span>
+              </>
+            ) : (
+              <span className="text-ink-500">Add to cart</span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => incrementCart(productWithLatestBatch)}
+            disabled={disabled || atMax}
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ink-950 text-white transition hover:bg-ink-800 disabled:opacity-30"
+            aria-label="Increase quantity"
+          >
+            <Plus size={16} strokeWidth={2} />
+          </button>
+        </div>
       </div>
     </article>
   );
