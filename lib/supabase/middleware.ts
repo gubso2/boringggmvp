@@ -4,12 +4,17 @@ import { NextResponse, type NextRequest } from "next/server";
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 export async function updateSession(request: NextRequest) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // Without env vars there's nothing to refresh — let the request through
+  // rather than 500-ing the whole site.
+  if (!url || !key) return NextResponse.next({ request });
+
   let response = NextResponse.next({ request });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  try {
+    const supabase = createServerClient(url, key, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -24,11 +29,14 @@ export async function updateSession(request: NextRequest) {
           });
         },
       },
-    },
-  );
+    });
 
-  // Refresh session if needed.
-  await supabase.auth.getUser();
+    // Refresh session if needed. Failures here (network, expired refresh
+    // token, etc.) shouldn't take down every page.
+    await supabase.auth.getUser();
+  } catch (err) {
+    console.error("[supabase middleware] session refresh failed:", err);
+  }
 
   return response;
 }
