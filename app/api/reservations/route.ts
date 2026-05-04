@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { stripe } from "@/lib/stripe/server";
+import { getStripe } from "@/lib/stripe/server";
 import { currentPriceCents } from "@/lib/pricing";
 import { INVITES_REQUIRED } from "@/lib/invites";
 import type { Batch, Product } from "@/lib/types";
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
 
   let intent;
   try {
-    intent = await stripe.paymentIntents.create({
+    intent = await getStripe().paymentIntents.create({
       amount: total,
       currency: "usd",
       automatic_payment_methods: { enabled: true },

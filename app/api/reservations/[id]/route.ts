@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { stripe } from "@/lib/stripe/server";
+import { getStripe } from "@/lib/stripe/server";
 import type { Batch, Reservation } from "@/lib/types";
 
 export async function DELETE(
@@ -55,7 +55,7 @@ export async function DELETE(
   }
 
   try {
-    await stripe.refunds.create({
+    await getStripe().refunds.create({
       payment_intent: row.stripe_payment_intent_id,
     });
   } catch (e) {
