@@ -5,6 +5,15 @@ export type PriceTier = {
   price_cents: number;
 };
 
+export type ProductSpec = {
+  /** Spec row label, e.g. "Driver" */
+  label: string;
+  /** Boringgg's value, e.g. "11mm graphene" */
+  ours: string;
+  /** Comparable brand's value */
+  theirs: string;
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -18,6 +27,14 @@ export type Product = {
   est_production_cost_cents: number;
   comparable_brand_name: string;
   comparable_brand_price_cents: number;
+  /** Lifestyle / in-use shot. Falls back to image_url if null. */
+  in_use_image_url: string | null;
+  /** Items shipped in the box. */
+  in_box: string[];
+  /** Spec comparison vs. comparable brand. */
+  specs: ProductSpec[];
+  /** One-sentence headline health / wellness benefit. */
+  health_benefit: string | null;
   created_at: string;
 };
 
