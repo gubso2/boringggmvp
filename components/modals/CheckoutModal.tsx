@@ -9,10 +9,12 @@ import {
 } from "@stripe/react-stripe-js";
 import { Modal } from "@/components/shared/Modal";
 import { Button } from "@/components/shared/Button";
+import { ProgressBar } from "@/components/shared/ProgressBar";
 import { useApp } from "@/components/AppProvider";
 import { currentPriceCents } from "@/lib/pricing";
 import { formatPrice } from "@/lib/utils";
 import { INVITES_REQUIRED } from "@/lib/invites";
+import { freeShippingProgress } from "@/lib/shipping";
 import { getStripe } from "@/lib/stripe/client";
 import {
   CheckCircle2,
@@ -21,6 +23,7 @@ import {
   Plus,
   Trash2,
   Sparkles,
+  Truck,
 } from "lucide-react";
 
 const stripePromise = typeof window !== "undefined" ? getStripe() : null;
@@ -55,6 +58,7 @@ export function CheckoutModal() {
   const skipMultiplier = locked && payDouble ? 2 : 1;
   const totalCents = cartSubtotalCents * skipMultiplier;
   const canPay = !locked || payDouble;
+  const shipping = freeShippingProgress(cartSubtotalCents);
 
   function close() {
     setPayDouble(false);
@@ -167,6 +171,34 @@ export function CheckoutModal() {
         </p>
       ) : (
         <div className="space-y-5">
+          {/* Free shipping nudge */}
+          {shipping.qualifies ? (
+            <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm">
+              <Truck size={14} className="text-emerald-700" strokeWidth={2} />
+              <span className="font-medium text-emerald-700">
+                You&rsquo;ve unlocked free shipping
+              </span>
+            </div>
+          ) : (
+            <div className="rounded-2xl bg-ink-50 px-4 py-3">
+              <div className="mb-2 flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2 text-ink-700">
+                  <Truck size={14} strokeWidth={2} />
+                  <span>
+                    <span className="font-semibold text-ink-950 tabular-nums">
+                      {formatPrice(shipping.awayCents)}
+                    </span>{" "}
+                    away from free shipping
+                  </span>
+                </span>
+                <span className="font-mono text-[11px] text-ink-400">
+                  {formatPrice(shipping.threshold)}
+                </span>
+              </div>
+              <ProgressBar value={shipping.progress} />
+            </div>
+          )}
+
           <ul className="divide-y divide-black/5 rounded-2xl bg-ink-50 px-4">
             {cartItems.map((item) => {
               const price = currentPriceCents(
