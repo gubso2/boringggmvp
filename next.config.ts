@@ -7,9 +7,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "plus.unsplash.com" },
     ],
   },
-  experimental: {
-    typedRoutes: false,
-  },
 };
 
 export default nextConfig;

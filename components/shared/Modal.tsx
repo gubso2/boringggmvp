@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 type ModalProps = {
   open: boolean;
   onClose: () => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   title?: string;
   className?: string;
   /** wider modal for product info */
@@ -65,21 +65,19 @@ export function Modal({
               className,
             )}
           >
-            {(title || onClose) && (
-              <div className="flex items-center justify-between gap-4 px-6 pb-2 pt-6">
-                <h2 className="text-lg font-semibold tracking-tight text-ink-950">
-                  {title}
-                </h2>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="-mr-2 rounded-full p-2 text-ink-500 transition hover:bg-black/5 hover:text-ink-950"
-                  aria-label="Close"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            )}
+            <div className="flex items-center justify-between gap-4 px-6 pb-2 pt-6">
+              <h2 className="text-lg font-semibold tracking-tight text-ink-950">
+                {title}
+              </h2>
+              <button
+                type="button"
+                onClick={onClose}
+                className="-mr-2 rounded-full p-2 text-ink-500 transition hover:bg-black/5 hover:text-ink-950"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
             <div className="px-6 pb-6">{children}</div>
           </motion.div>
         </motion.div>
