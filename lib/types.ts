@@ -5,6 +5,16 @@ export type PriceTier = {
   price_cents: number;
 };
 
+export type ProductReview = {
+  id: string;
+  product_id: string;
+  reviewer_name: string;
+  rating: number;
+  title: string | null;
+  body: string;
+  created_at: string;
+};
+
 export type ProductVariant = {
   id: string;
   product_id: string;
@@ -54,6 +64,12 @@ export type Product = {
   category: string;
   /** Optional variants (e.g. colors). Empty array = no variant choice. */
   variants: ProductVariant[];
+  /** Customer reviews, newest first. Empty when none submitted. */
+  reviews: ProductReview[];
+  /** Mean of `reviews.rating`. 0 when no reviews. */
+  avg_rating: number;
+  /** Convenience alias for `reviews.length`. */
+  review_count: number;
   created_at: string;
 };
 

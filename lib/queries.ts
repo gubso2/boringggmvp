@@ -3,6 +3,7 @@ import { marginCurve } from "./pricing";
 import type {
   Batch,
   Product,
+  ProductReview,
   ProductVariant,
   ProductWithBatch,
   Reservation,
@@ -37,6 +38,9 @@ function normalizeProduct(p: Partial<Product> & Pick<Product, "id" | "est_produc
     health_benefit: p.health_benefit ?? null,
     category: p.category ?? "general",
     variants: p.variants ?? [],
+    reviews: p.reviews ?? [],
+    avg_rating: p.avg_rating ?? 0,
+    review_count: p.review_count ?? 0,
     created_at: p.created_at ?? "",
     price_curve: marginCurve(p.est_production_cost_cents),
   };
@@ -62,6 +66,12 @@ export async function getProductsWithBatches(): Promise<ProductWithBatch[]> {
     .order("sort_order", { ascending: true });
   if (vErr) throw vErr;
 
+  const { data: reviews, error: rErr } = await supabase
+    .from("product_reviews")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (rErr) throw rErr;
+
   const batchByProduct = new Map<string, Batch>();
   for (const b of batches as Batch[]) batchByProduct.set(b.product_id, b);
 
@@ -72,14 +82,30 @@ export async function getProductsWithBatches(): Promise<ProductWithBatch[]> {
     variantsByProduct.set(v.product_id, arr);
   }
 
+  const reviewsByProduct = new Map<string, ProductReview[]>();
+  for (const r of (reviews ?? []) as ProductReview[]) {
+    const arr = reviewsByProduct.get(r.product_id) ?? [];
+    arr.push(r);
+    reviewsByProduct.set(r.product_id, arr);
+  }
+
   return (products as Product[])
     .map((p) => {
       const batch = batchByProduct.get(p.id);
       if (!batch) return null;
+      const productReviews = reviewsByProduct.get(p.id) ?? [];
+      const avg =
+        productReviews.length === 0
+          ? 0
+          : productReviews.reduce((s, r) => s + r.rating, 0) /
+            productReviews.length;
       const normalized = normalizeProduct(p);
       return {
         ...normalized,
         variants: variantsByProduct.get(p.id) ?? [],
+        reviews: productReviews,
+        avg_rating: avg,
+        review_count: productReviews.length,
         batch,
       };
     })

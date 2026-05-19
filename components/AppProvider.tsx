@@ -65,6 +65,10 @@ type Ctx = {
     variant: ProductVariant | null,
   ) => void;
   clearCart: () => void;
+  /** Slide-in side cart drawer state. */
+  sideCartOpen: boolean;
+  openSideCart: () => void;
+  closeSideCart: () => void;
   /** Open checkout, prompting auth first if needed. */
   startCheckout: () => void;
 };
@@ -91,6 +95,7 @@ export function AppProvider({
   const [inviteCount, setInviteCount] = useState(initialInviteCount);
   const [modal, setModal] = useState<Modal>({ kind: "none" });
   const [cart, setCart] = useState<Map<string, CartItem>>(new Map());
+  const [sideCartOpen, setSideCartOpen] = useState(false);
 
   const refreshInvites = useCallback(async () => {
     if (!user) {
@@ -143,6 +148,7 @@ export function AppProvider({
   const incrementCart = useCallback(
     (product: ProductWithBatch, variant: ProductVariant | null) => {
       const key = cartKey(product.id, variant?.id ?? null);
+      let didAdd = false;
       setCart((prev) => {
         const cur = prev.get(key)?.quantity ?? 0;
         const next = new Map(prev);
@@ -150,8 +156,11 @@ export function AppProvider({
         const clamped = Math.max(0, Math.min(10, Math.min(max, cur + 1)));
         if (clamped <= 0) next.delete(key);
         else next.set(key, { product, variant, quantity: clamped });
+        didAdd = clamped > cur;
         return next;
       });
+      // Surface the side cart whenever the user actually grew the cart.
+      if (didAdd) setSideCartOpen(true);
     },
     [],
   );
@@ -198,7 +207,11 @@ export function AppProvider({
     [cart],
   );
 
+  const openSideCart = useCallback(() => setSideCartOpen(true), []);
+  const closeSideCart = useCallback(() => setSideCartOpen(false), []);
+
   const startCheckout = useCallback(() => {
+    setSideCartOpen(false);
     if (!user) {
       setModal({
         kind: "auth",
@@ -225,6 +238,9 @@ export function AppProvider({
     incrementCart,
     decrementCart,
     clearCart,
+    sideCartOpen,
+    openSideCart,
+    closeSideCart,
     startCheckout,
   };
 

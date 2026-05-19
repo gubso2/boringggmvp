@@ -6,13 +6,22 @@ import { Modal } from "@/components/shared/Modal";
 import { ExternalLink } from "@/components/shared/ExternalLink";
 import { useApp } from "@/components/AppProvider";
 import { formatPrice } from "@/lib/utils";
-import { ArrowUpRight, Heart, Package, Sparkles } from "lucide-react";
+import {
+  ArrowUpRight,
+  ChevronDown,
+  Heart,
+  Package,
+  Sparkles,
+  Star,
+} from "lucide-react";
+import type { ProductReview } from "@/lib/types";
 
 type GalleryKey = "in-use" | "benefits" | "in-box";
 
 export function InfoModal() {
   const { modal, setModal } = useApp();
   const [active, setActive] = useState<GalleryKey>("in-use");
+  const [reviewsOpen, setReviewsOpen] = useState(false);
 
   if (modal.kind !== "info") {
     return <Modal open={false} onClose={() => setModal({ kind: "none" })} />;
@@ -48,13 +57,16 @@ export function InfoModal() {
   ];
   const current = slides.find((s) => s.key === active) ?? slides[0];
 
+  function close() {
+    setActive("in-use");
+    setReviewsOpen(false);
+    setModal({ kind: "none" });
+  }
+
   return (
     <Modal
       open
-      onClose={() => {
-        setActive("in-use");
-        setModal({ kind: "none" });
-      }}
+      onClose={close}
       title={product.name}
       size="lg"
     >
@@ -95,6 +107,33 @@ export function InfoModal() {
             </div>
           )}
         </div>
+
+        {/* Rating row — jumps the user to the expandable reviews section below */}
+        {product.review_count > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              setReviewsOpen(true);
+              setTimeout(() => {
+                document
+                  .getElementById("info-modal-reviews")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 30);
+            }}
+            className="-mt-1 flex items-center gap-2 text-sm text-ink-700 transition hover:text-ink-950"
+          >
+            <span className="inline-flex items-center gap-1">
+              <Star size={14} fill="currentColor" strokeWidth={0} />
+              <span className="font-semibold tabular-nums text-ink-950">
+                {product.avg_rating.toFixed(1)}
+              </span>
+            </span>
+            <span className="text-ink-500">
+              ({product.review_count} review
+              {product.review_count === 1 ? "" : "s"}) — read all
+            </span>
+          </button>
+        )}
 
         {product.description && (
           <p className="text-[15px] leading-relaxed text-ink-700">
@@ -219,9 +258,98 @@ export function InfoModal() {
             ))}
           </div>
         </div>
+
+        {/* Expandable reviews */}
+        {product.review_count > 0 && (
+          <div id="info-modal-reviews" className="scroll-mt-4">
+            <button
+              type="button"
+              onClick={() => setReviewsOpen((v) => !v)}
+              className="flex w-full items-center justify-between rounded-2xl bg-ink-50 px-4 py-3 text-left transition hover:bg-ink-100"
+              aria-expanded={reviewsOpen}
+              aria-controls="info-modal-reviews-list"
+            >
+              <span className="flex items-center gap-2 text-sm text-ink-950">
+                <Star size={14} fill="currentColor" strokeWidth={0} />
+                <span className="font-semibold tabular-nums">
+                  {product.avg_rating.toFixed(1)}
+                </span>
+                <span className="text-ink-500">
+                  · {product.review_count} review
+                  {product.review_count === 1 ? "" : "s"}
+                </span>
+              </span>
+              <ChevronDown
+                size={16}
+                className={`text-ink-600 transition-transform ${
+                  reviewsOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {reviewsOpen && (
+              <ul
+                id="info-modal-reviews-list"
+                className="mt-3 space-y-3"
+              >
+                {product.reviews.map((r) => (
+                  <ReviewItem key={r.id} review={r} />
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
     </Modal>
   );
+}
+
+function ReviewItem({ review }: { review: ProductReview }) {
+  return (
+    <li className="rounded-2xl bg-white p-4 hairline">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-medium text-ink-950">
+          {review.reviewer_name}
+        </span>
+        <span className="text-[11px] text-ink-400">
+          {relativeDate(review.created_at)}
+        </span>
+      </div>
+      <div className="mt-1 flex items-center gap-1">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Star
+            key={i}
+            size={12}
+            fill={i < review.rating ? "currentColor" : "none"}
+            strokeWidth={1.5}
+            className={i < review.rating ? "text-ink-950" : "text-ink-300"}
+          />
+        ))}
+      </div>
+      {review.title && (
+        <div className="mt-2 text-sm font-semibold text-ink-950">
+          {review.title}
+        </div>
+      )}
+      <p className="mt-1 text-sm leading-relaxed text-ink-700">
+        {review.body}
+      </p>
+    </li>
+  );
+}
+
+function relativeDate(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const day = 86_400_000;
+  const days = Math.floor(diff / day);
+  if (days < 1) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks}w ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  const years = Math.floor(days / 365);
+  return `${years}y ago`;
 }
 
 function SpecRow({

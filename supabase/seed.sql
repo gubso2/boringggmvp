@@ -127,3 +127,39 @@ select p.id, v.name, v.swatch_hex, v.sort_order
     ('Navy',  '#1E2A44', 3)
   ) as v(name, swatch_hex, sort_order)
  where p.name = 'Mulberry Silk Pillowcase';
+
+-- Sample customer reviews. Re-seedable; deleted first so the seed is idempotent.
+delete from public.product_reviews
+ where product_id in (select id from public.products);
+
+insert into public.product_reviews
+  (product_id, reviewer_name, rating, title, body, created_at)
+select p.id, r.reviewer_name, r.rating, r.title, r.body, r.created_at
+  from public.products p
+  join (values
+    ('Nanobubble Filtered Showerhead', 'Sarah K.',  5, 'Skin is glowing',     'Two weeks in and my skin feels noticeably less tight after a shower. The chlorine smell is gone.', now() - interval '14 days'),
+    ('Nanobubble Filtered Showerhead', 'Marcus T.', 5, 'Worth it',            'Softer hair, no more itchy scalp. Install was 10 minutes with the included tape.', now() - interval '21 days'),
+    ('Nanobubble Filtered Showerhead', 'Priya R.',  4, 'Great but not magic', 'Definitely better than my old head. Water pressure stayed strong.', now() - interval '7 days'),
+    ('Nanobubble Filtered Showerhead', 'Anna W.',   5, 'My partner notices',  'Both of us see the difference. Already ordered a backup cartridge.', now() - interval '5 days'),
+    ('Nanobubble Filtered Showerhead', 'Diego A.',  4, 'Cartridge price',     'Filter works great — hope refills don''t blow the budget.', now() - interval '1 days'),
+
+    ('Mulberry Silk Pillowcase', 'Emma R.',   5, 'No more breakouts',    'Less friction = fewer chin breakouts. Wish I''d bought sooner.', now() - interval '7 days'),
+    ('Mulberry Silk Pillowcase', 'Jess M.',   5, 'Zero sleep creases',   'Hair stays soft, no morning crease lines. Quality matches Slip.', now() - interval '14 days'),
+    ('Mulberry Silk Pillowcase', 'Sophia L.', 4, 'Slips on cotton',      'I have to readjust at night, but the silk feels incredible.',     now() - interval '21 days'),
+    ('Mulberry Silk Pillowcase', 'Maya N.',   5, 'Best birthday gift',   'Gave to my sister — she''s already asked for two more.',          now() - interval '30 days'),
+    ('Mulberry Silk Pillowcase', 'Olivia P.', 5, 'Better than Slip',     'Same momme weight at half the cost. The hidden zipper is a nice touch.', now() - interval '4 days'),
+    ('Mulberry Silk Pillowcase', 'Lucas T.',  5, 'Husband stole it',     'He swore he''d never use silk. Now I''m buying a second.',         now() - interval '5 days'),
+
+    ('Mulberry Silk Eyemask', 'David S.', 5, 'Saved my red-eyes',  'I travel weekly — this and earplugs have been game-changing.',    now() - interval '14 days'),
+    ('Mulberry Silk Eyemask', 'Hannah B.', 5, 'Total darkness',    'Blocks even my partner''s reading light at 11pm.',                 now() - interval '21 days'),
+    ('Mulberry Silk Eyemask', 'Aman J.',   4, 'Strap loosens',     'Have to tighten it about once a month, otherwise perfect.',        now() - interval '7 days'),
+    ('Mulberry Silk Eyemask', 'Sofia G.',  5, 'Bought with the pillowcase', 'Both were worth it. Sleep score up 12 points.',          now() - interval '4 days'),
+    ('Mulberry Silk Eyemask', 'Liam H.',   5, 'Best stocking stuffer',     'Two friends already asked where I got it.',                now() - interval '2 days'),
+
+    ('Cold Plunge Ice Bath', 'Tom K.',    5, 'Daily routine now',    '20-minute setup, holds 39°F overnight with the cover. Recovery is real.', now() - interval '21 days'),
+    ('Cold Plunge Ice Bath', 'Jordan F.', 5, 'Cheaper than Plunge',  'Same chiller compatibility, fraction of the cost.',                     now() - interval '14 days'),
+    ('Cold Plunge Ice Bath', 'Carlos D.', 4, 'Bigger than expected', 'Fits in the garage but barely. Build quality is excellent.',           now() - interval '7 days'),
+    ('Cold Plunge Ice Bath', 'Ben L.',    5, 'First plunge I could afford', 'Took the leap on this drop — no regrets.',                      now() - interval '4 days'),
+    ('Cold Plunge Ice Bath', 'Rachel S.', 5, 'Solid build',          'Insulation does what it says. I leave the cover on, temp barely drifts.', now() - interval '1 days')
+  ) as r(product_name, reviewer_name, rating, title, body, created_at)
+  on p.name = r.product_name;

@@ -7,6 +7,7 @@ import { StickyNav } from "@/components/nav/StickyNav";
 import { ModalManager } from "@/components/ModalManager";
 import { AppProvider } from "@/components/AppProvider";
 import { CartBar } from "@/components/cart/CartBar";
+import { SideCart } from "@/components/cart/SideCart";
 import {
   getProductsWithBatches,
   getInviteCount,
@@ -36,6 +37,7 @@ export default async function Home() {
       </main>
       <Footer />
       <CartBar />
+      <SideCart />
       <ModalManager />
     </AppProvider>
   );

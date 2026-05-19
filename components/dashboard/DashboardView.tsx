@@ -103,10 +103,7 @@ export function DashboardView({ reservations }: { reservations: Row[] }) {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-ink-500">
-                <span>
-                  {batch.units_reserved} / {r.product.moq} units
-                </span>
+              <div className="flex justify-end text-[11px] text-ink-500">
                 <CountdownTimer endAt={batch.end_at} compact />
               </div>
             </div>

@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/utils";
 import { freeShippingProgress } from "@/lib/shipping";
 
 export function CartBar() {
-  const { cartCount, cartSubtotalCents, startCheckout } = useApp();
+  const { cartCount, cartSubtotalCents, openSideCart } = useApp();
   const visible = cartCount > 0;
   const shipping = freeShippingProgress(cartSubtotalCents);
 
@@ -56,7 +56,7 @@ export function CartBar() {
 
             <button
               type="button"
-              onClick={startCheckout}
+              onClick={openSideCart}
               className="group flex w-full items-center gap-2 p-1.5 pl-3 text-sm transition hover:scale-[1.005] sm:gap-3 sm:pl-4"
             >
               <ShoppingBag
@@ -74,7 +74,7 @@ export function CartBar() {
                 {formatPrice(cartSubtotalCents)}
               </span>
               <span className="inline-flex h-9 shrink-0 items-center rounded-full bg-ink-950 px-3.5 text-sm font-medium text-white transition group-hover:bg-ink-800 sm:px-4">
-                Checkout
+                View bag
               </span>
             </button>
           </div>

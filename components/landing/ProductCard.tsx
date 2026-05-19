@@ -1,22 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { useApp } from "@/components/AppProvider";
 import { useBatchRealtime } from "@/lib/realtime";
 import { currentPriceCents } from "@/lib/pricing";
 import { formatPrice } from "@/lib/utils";
-import { categoryIcon, categoryLabel } from "@/lib/categories";
 import type { ProductVariant, ProductWithBatch } from "@/lib/types";
-import { Info, Minus, Plus } from "lucide-react";
+import { Info, Minus, Plus, Star } from "lucide-react";
 
 export function ProductCard({ product }: { product: ProductWithBatch }) {
   const { setModal, getCartQuantity, incrementCart, decrementCart } = useApp();
   const batch = useBatchRealtime(product.batch);
   const [imgFailed, setImgFailed] = useState(false);
 
-  // Variant selection — first variant by sort order, or null if none.
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
     product.variants[0]?.id ?? null,
   );
@@ -39,25 +37,26 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
   const soldOut = remaining === 0;
   const disabled = closed || soldOut;
   const atMax = inCart >= Math.min(10, remaining);
-  const CategoryIcon = categoryIcon(product.category);
-  const categoryName = categoryLabel(product.category);
 
-  // If the user re-selects a variant, also re-sync — batch may have moved
-  // and we want the price computation up to date for that key.
-  useEffect(() => {
-    // intentional no-op; the effect just re-renders the cart line via the
-    // latest batch when realtime ticks
-  }, [batch.units_reserved, selectedVariantId]);
+  function openInfo() {
+    setModal({ kind: "info", product: productWithLatestBatch });
+  }
 
   return (
     <article className="group flex flex-col gap-4 rounded-3xl bg-white p-3 hairline transition hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-16px_rgba(0,0,0,0.18)]">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-ink-100">
+      {/* The whole hero is a button into the InfoModal */}
+      <button
+        type="button"
+        onClick={openInfo}
+        className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-ink-100 text-left"
+        aria-label={`More about ${product.name}`}
+      >
         {!imgFailed ? (
           <Image
             src={product.image_url}
             alt={product.name}
             fill
-            sizes="(min-width: 1024px) 280px, (min-width: 640px) 50vw, 100vw"
+            sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
             className="object-cover transition duration-500 group-hover:scale-[1.03]"
             onError={() => setImgFailed(true)}
           />
@@ -67,28 +66,35 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={() =>
-            setModal({ kind: "info", product: productWithLatestBatch })
-          }
-          className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/80 text-ink-700 backdrop-blur transition hover:bg-white hover:text-ink-950"
-          aria-label="More information"
-        >
+        {/* top-right: info chip */}
+        <span className="pointer-events-none absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/80 text-ink-700 backdrop-blur">
           <Info size={14} strokeWidth={2} />
-        </button>
+        </span>
 
-        <div
-          className="absolute left-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/80 text-ink-700 backdrop-blur"
-          title={categoryName}
-          aria-label={categoryName}
-        >
-          <CategoryIcon size={14} strokeWidth={2} />
-        </div>
-      </div>
+        {/* top-left: rating badge (also opens info) — fallback hides when no reviews */}
+        {product.review_count > 0 && (
+          <span
+            className="absolute left-2 top-2 inline-flex h-8 items-center gap-1 rounded-full bg-white/85 px-2.5 text-ink-950 backdrop-blur"
+            title={`${product.review_count} review${product.review_count === 1 ? "" : "s"}`}
+          >
+            <Star size={12} fill="currentColor" strokeWidth={0} />
+            <span className="text-xs font-semibold tabular-nums">
+              {product.avg_rating.toFixed(1)}
+            </span>
+            <span className="text-[10px] text-ink-500">
+              ({product.review_count})
+            </span>
+          </span>
+        )}
+      </button>
 
       <div className="flex flex-col gap-3 px-1.5 pb-1.5">
-        <div className="flex items-start justify-between gap-2">
+        {/* Clicking the title also opens the info modal */}
+        <button
+          type="button"
+          onClick={openInfo}
+          className="flex items-start justify-between gap-2 text-left"
+        >
           <h3 className="text-[15px] font-medium tracking-tight text-ink-950">
             {product.name}
           </h3>
@@ -100,7 +106,7 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
               {formatPrice(product.comparable_brand_price_cents)}
             </div>
           </div>
-        </div>
+        </button>
 
         {/* Variant swatches */}
         {product.variants.length > 0 && (
@@ -132,13 +138,8 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
           </div>
         )}
 
-        <div className="flex items-center justify-between text-[11px]">
-          <span className="text-ink-600">
-            <span className="font-medium text-ink-950">
-              {batch.units_reserved}
-            </span>{" "}
-            / {product.moq} units
-          </span>
+        {/* Countdown only — unit tracker is gone */}
+        <div className="flex justify-end">
           <CountdownTimer endAt={batch.end_at} compact />
         </div>
 

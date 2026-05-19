@@ -9,22 +9,11 @@ import {
 } from "@stripe/react-stripe-js";
 import { Modal } from "@/components/shared/Modal";
 import { Button } from "@/components/shared/Button";
-import { ProgressBar } from "@/components/shared/ProgressBar";
 import { useApp } from "@/components/AppProvider";
-import { currentPriceCents } from "@/lib/pricing";
 import { formatPrice } from "@/lib/utils";
 import { INVITES_REQUIRED } from "@/lib/invites";
-import { freeShippingProgress } from "@/lib/shipping";
 import { getStripe } from "@/lib/stripe/client";
-import {
-  CheckCircle2,
-  Lock,
-  Minus,
-  Plus,
-  Trash2,
-  Sparkles,
-  Truck,
-} from "lucide-react";
+import { CheckCircle2, Lock, Sparkles } from "lucide-react";
 
 const stripePromise = typeof window !== "undefined" ? getStripe() : null;
 
@@ -35,12 +24,10 @@ export function CheckoutModal() {
     cartItems,
     cartSubtotalCents,
     cartCount,
-    incrementCart,
-    decrementCart,
-    setCartQuantity,
     clearCart,
     invitesRemaining,
     inviteCount,
+    openSideCart,
   } = useApp();
 
   const open = modal.kind === "checkout";
@@ -53,12 +40,10 @@ export function CheckoutModal() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // When the user has already invited 2 people, the pay-double option is moot.
   const locked = invitesRemaining > 0;
   const skipMultiplier = locked && payDouble ? 2 : 1;
   const totalCents = cartSubtotalCents * skipMultiplier;
   const canPay = !locked || payDouble;
-  const shipping = freeShippingProgress(cartSubtotalCents);
 
   function close() {
     setPayDouble(false);
@@ -165,117 +150,31 @@ export function CheckoutModal() {
   }
 
   return (
-    <Modal open={open} onClose={close} title="Your cart" size="lg">
+    <Modal open={open} onClose={close} title="Checkout">
       {cartItems.length === 0 ? (
         <p className="py-6 text-center text-sm text-ink-500">
-          Your cart is empty. Add items from the drops below.
+          Your bag is empty. Add items from the drops below.
         </p>
       ) : (
         <div className="space-y-5">
-          {/* Free shipping nudge */}
-          {shipping.qualifies ? (
-            <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm">
-              <Truck size={14} className="text-emerald-700" strokeWidth={2} />
-              <span className="font-medium text-emerald-700">
-                You&rsquo;ve unlocked free shipping
+          {/* Slim summary */}
+          <div className="rounded-2xl bg-ink-50 px-4 py-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-ink-500">
+                {cartCount} {cartCount === 1 ? "item" : "items"} in your bag
               </span>
+              <button
+                type="button"
+                onClick={() => {
+                  close();
+                  openSideCart();
+                }}
+                className="text-xs font-medium text-ink-700 underline-offset-2 hover:underline"
+              >
+                Edit
+              </button>
             </div>
-          ) : (
-            <div className="rounded-2xl bg-ink-50 px-4 py-3">
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-ink-700">
-                  <Truck size={14} strokeWidth={2} />
-                  <span>
-                    <span className="font-semibold text-ink-950 tabular-nums">
-                      {formatPrice(shipping.awayCents)}
-                    </span>{" "}
-                    away from free shipping
-                  </span>
-                </span>
-                <span className="font-mono text-[11px] text-ink-400">
-                  {formatPrice(shipping.threshold)}
-                </span>
-              </div>
-              <ProgressBar value={shipping.progress} />
-            </div>
-          )}
-
-          <ul className="divide-y divide-black/5 rounded-2xl bg-ink-50 px-3 sm:px-4">
-            {cartItems.map((item) => {
-              const price = currentPriceCents(
-                item.product.batch.units_reserved,
-                item.product.moq,
-                item.product.price_curve,
-              );
-              const lineTotal = price * item.quantity;
-              const lineKey = `${item.product.id}::${item.variant?.id ?? "default"}`;
-              return (
-                <li key={lineKey} className="py-3">
-                  {/* Row 1 — name + line total, always side-by-side */}
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="flex min-w-0 items-center gap-2 truncate text-sm font-medium text-ink-950">
-                      {item.variant?.swatch_hex && (
-                        <span
-                          className="inline-block h-3 w-3 shrink-0 rounded-full ring-1 ring-black/15"
-                          style={{ background: item.variant.swatch_hex }}
-                          aria-hidden
-                        />
-                      )}
-                      <span className="truncate">
-                        {item.product.name}
-                        {item.variant && (
-                          <span className="text-ink-500">
-                            {" "}
-                            · {item.variant.name}
-                          </span>
-                        )}
-                      </span>
-                    </span>
-                    <span className="shrink-0 text-sm font-semibold tabular-nums text-ink-950">
-                      {formatPrice(lineTotal)}
-                    </span>
-                  </div>
-                  {/* Row 2 — unit price + qty stepper + remove */}
-                  <div className="mt-2 flex items-center justify-between gap-3">
-                    <span className="text-xs text-ink-500">
-                      {formatPrice(price)} each
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        aria-label="Decrease"
-                        onClick={() => decrementCart(item.product, item.variant)}
-                        className="grid h-8 w-8 place-items-center rounded-full bg-white hairline text-ink-700 transition hover:bg-ink-50"
-                      >
-                        <Minus size={12} />
-                      </button>
-                      <span className="w-6 text-center font-mono text-sm tabular-nums">
-                        {item.quantity}
-                      </span>
-                      <button
-                        type="button"
-                        aria-label="Increase"
-                        onClick={() => incrementCart(item.product, item.variant)}
-                        className="grid h-8 w-8 place-items-center rounded-full bg-white hairline text-ink-700 transition hover:bg-ink-50"
-                      >
-                        <Plus size={12} />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="Remove"
-                        onClick={() =>
-                          setCartQuantity(item.product, item.variant, 0)
-                        }
-                        className="ml-1 grid h-8 w-8 place-items-center rounded-full text-ink-400 transition hover:bg-black/5 hover:text-ink-700"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          </div>
 
           {/* Invite-or-pay-double gate */}
           {locked && (
