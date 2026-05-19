@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { ShoppingBag } from "lucide-react";
 import { Button } from "@/components/shared/Button";
 import { useApp } from "@/components/AppProvider";
 
 export function StickyNav() {
-  const { user, setModal, signOut } = useApp();
+  const { user, setModal, signOut, cartCount, openSideCart } = useApp();
 
   return (
     <header className="sticky top-0 z-30 w-full">
@@ -52,13 +53,25 @@ export function StickyNav() {
                 </Button>
               </>
             ) : (
-              <Button
-                size="sm"
-                onClick={() => setModal({ kind: "auth" })}
-              >
+              <Button size="sm" onClick={() => setModal({ kind: "auth" })}>
                 Sign in
               </Button>
             )}
+            <button
+              type="button"
+              onClick={openSideCart}
+              aria-label={`Open bag (${cartCount} ${
+                cartCount === 1 ? "item" : "items"
+              })`}
+              className="relative inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-950 transition hover:bg-black/5"
+            >
+              <ShoppingBag size={16} strokeWidth={2} />
+              {cartCount > 0 && (
+                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-ink-950 px-1 text-[10px] font-semibold text-white tabular-nums">
+                  {cartCount}
+                </span>
+              )}
+            </button>
           </div>
         </nav>
       </div>
