@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ProgressBar } from "@/components/shared/ProgressBar";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
-import { PriceGraph } from "@/components/landing/PriceGraph";
 import { useApp } from "@/components/AppProvider";
 import { useBatchRealtime } from "@/lib/realtime";
 import { currentPriceCents } from "@/lib/pricing";
@@ -112,12 +111,6 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
           </div>
           <ProgressBar value={filled} />
         </div>
-
-        <PriceGraph
-          curve={product.price_curve}
-          moq={product.moq}
-          unitsReserved={batch.units_reserved}
-        />
 
         {/* Quantity stepper — minus left, plus right */}
         <div className="flex items-center gap-2">

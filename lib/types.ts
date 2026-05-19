@@ -29,8 +29,12 @@ export type Product = {
   comparable_brand_price_cents: number;
   /** Brand website used in the InfoModal "vs." link. External URL. */
   comparable_brand_url: string | null;
-  /** Lifestyle / in-use shot. Falls back to image_url if null. */
+  /** @deprecated kept for back-compat; ignored by the InfoModal gallery. */
   in_use_image_url: string | null;
+  /** Image 2 of 3 in InfoModal: illustrates the product's benefits. */
+  image_benefits_url: string | null;
+  /** Image 3 of 3 in InfoModal: what's in the box. */
+  image_in_box_url: string | null;
   /** Items shipped in the box. */
   in_box: string[];
   /** Spec comparison vs. comparable brand. */

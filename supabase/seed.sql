@@ -294,3 +294,39 @@ update public.products
      when 'Gravity Blanket Original' then 'https://gravityblankets.com'
      else null
    end;
+
+-- =====================================================================
+-- Shuffle images into the 3-image gallery layout used by the new InfoModal:
+--   1. image_url           → product in use   (was: clean product shot)
+--   2. image_benefits_url  → benefit / lifestyle
+--   3. image_in_box_url    → what's in the box (the old clean product shot)
+-- =====================================================================
+
+-- Step 1: park the old clean product shot into the "in the box" slot before
+-- we overwrite image_url with the in-use shot.
+update public.products
+   set image_in_box_url = image_url;
+
+-- Step 2: promote the in-use shot to the main image.
+update public.products
+   set image_url = in_use_image_url
+ where in_use_image_url is not null;
+
+-- Step 3: per-product benefits image. Generic lifestyle / wellness photos —
+-- swap in the Supabase Table Editor for branded shots later.
+update public.products
+   set image_benefits_url = case name
+     when 'Wireless ANC Earbuds'                then 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=900&q=80&auto=format&fit=crop'
+     when '75% Mechanical Keyboard'             then 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=900&q=80&auto=format&fit=crop'
+     when 'Heavyweight Cotton Hoodie'           then 'https://images.unsplash.com/photo-1556228724-4d0617c0d4a6?w=900&q=80&auto=format&fit=crop'
+     when 'Knit Runner Sneakers'                then 'https://images.unsplash.com/photo-1483721310020-03333e577078?w=900&q=80&auto=format&fit=crop'
+     when 'French Press 1L'                     then 'https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=900&q=80&auto=format&fit=crop'
+     when 'Stonewashed Linen Sheet Set'         then 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=900&q=80&auto=format&fit=crop'
+     when 'Smart Hydration Bottle'              then 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=900&q=80&auto=format&fit=crop'
+     when 'Slim Bifold Leather Wallet'          then 'https://images.unsplash.com/photo-1502323777036-f29e3972d82f?w=900&q=80&auto=format&fit=crop'
+     when 'Bluetooth Item Tracker (4-pack)'     then 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=900&q=80&auto=format&fit=crop'
+     when 'Adjustable Dumbbell Pair (5–50 lb)'  then 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=900&q=80&auto=format&fit=crop'
+     when 'Ceramic Knife 5-piece Set'           then 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=900&q=80&auto=format&fit=crop'
+     when 'Weighted Blanket 15 lb'              then 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=900&q=80&auto=format&fit=crop'
+     else null
+   end;

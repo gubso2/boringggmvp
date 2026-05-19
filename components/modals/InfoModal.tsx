@@ -8,9 +8,11 @@ import { useApp } from "@/components/AppProvider";
 import { formatPrice } from "@/lib/utils";
 import { ArrowUpRight, Heart, Package, Sparkles } from "lucide-react";
 
+type GalleryKey = "in-use" | "benefits" | "in-box";
+
 export function InfoModal() {
   const { modal, setModal } = useApp();
-  const [hero, setHero] = useState<"product" | "in-use">("product");
+  const [active, setActive] = useState<GalleryKey>("in-use");
 
   if (modal.kind !== "info") {
     return <Modal open={false} onClose={() => setModal({ kind: "none" })} />;
@@ -21,53 +23,75 @@ export function InfoModal() {
     (1 - product.base_price_cents / product.comparable_brand_price_cents) * 100,
   );
 
-  const heroSrc =
-    hero === "in-use" && product.in_use_image_url
-      ? product.in_use_image_url
-      : product.image_url;
-  const hasInUse = !!product.in_use_image_url;
+  // Build the gallery: main image is always present (the "in use" shot);
+  // benefits + in-box only appear when their URL is populated.
+  const slides: { key: GalleryKey; label: string; src: string }[] = [
+    { key: "in-use", label: "In use", src: product.image_url },
+    ...(product.image_benefits_url
+      ? [
+          {
+            key: "benefits" as const,
+            label: "Benefits",
+            src: product.image_benefits_url,
+          },
+        ]
+      : []),
+    ...(product.image_in_box_url
+      ? [
+          {
+            key: "in-box" as const,
+            label: "In the box",
+            src: product.image_in_box_url,
+          },
+        ]
+      : []),
+  ];
+  const current = slides.find((s) => s.key === active) ?? slides[0];
 
   return (
     <Modal
       open
       onClose={() => {
-        setHero("product");
+        setActive("in-use");
         setModal({ kind: "none" });
       }}
       title={product.name}
       size="lg"
     >
       <div className="space-y-6">
-        {/* Hero gallery: tap to swap between product + in-use shots */}
+        {/* 3-image gallery: in-use / benefits / in-box, tab navigation below */}
         <div>
           <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-ink-100">
             <Image
-              key={heroSrc}
-              src={heroSrc}
-              alt={product.name}
+              key={current.src}
+              src={current.src}
+              alt={`${product.name} — ${current.label}`}
               fill
               className="object-cover transition-opacity duration-300"
               sizes="(min-width: 768px) 640px, 100vw"
             />
           </div>
-          {hasInUse && (
+          {slides.length > 1 && (
             <div className="mt-2 flex justify-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setHero("product")}
-                className={`h-1.5 w-8 rounded-full transition ${
-                  hero === "product" ? "bg-ink-950" : "bg-ink-200"
-                }`}
-                aria-label="Product shot"
-              />
-              <button
-                type="button"
-                onClick={() => setHero("in-use")}
-                className={`h-1.5 w-8 rounded-full transition ${
-                  hero === "in-use" ? "bg-ink-950" : "bg-ink-200"
-                }`}
-                aria-label="In-use shot"
-              />
+              {slides.map((s) => {
+                const isActive = s.key === current.key;
+                return (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => setActive(s.key)}
+                    className={`rounded-full px-3 py-1 text-[11px] font-medium transition ${
+                      isActive
+                        ? "bg-ink-950 text-white"
+                        : "bg-ink-100 text-ink-600 hover:bg-ink-200"
+                    }`}
+                    aria-label={s.label}
+                    aria-pressed={isActive}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
