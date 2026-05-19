@@ -5,6 +5,15 @@ export type PriceTier = {
   price_cents: number;
 };
 
+export type ProductVariant = {
+  id: string;
+  product_id: string;
+  name: string;
+  /** Hex like "#FFFFFF" for color variants. Null for non-color variants. */
+  swatch_hex: string | null;
+  sort_order: number;
+};
+
 export type ProductSpec = {
   /** Spec row label, e.g. "Driver" */
   label: string;
@@ -43,6 +52,8 @@ export type Product = {
   health_benefit: string | null;
   /** Slug used to pick the category icon shown on the card. */
   category: string;
+  /** Optional variants (e.g. colors). Empty array = no variant choice. */
+  variants: ProductVariant[];
   created_at: string;
 };
 
@@ -60,6 +71,7 @@ export type Reservation = {
   id: string;
   user_id: string;
   batch_id: string;
+  variant_id: string | null;
   quantity: number;
   unit_price_cents: number;
   total_paid_cents: number;

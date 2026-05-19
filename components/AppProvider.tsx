@@ -12,7 +12,7 @@ import type { User } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { INVITES_REQUIRED } from "@/lib/invites";
 import { currentPriceCents } from "@/lib/pricing";
-import type { ProductWithBatch } from "@/lib/types";
+import type { ProductVariant, ProductWithBatch } from "@/lib/types";
 
 type Modal =
   | { kind: "none" }
@@ -24,8 +24,15 @@ type Modal =
 
 type CartItem = {
   product: ProductWithBatch;
+  /** Selected variant, if the product has any. Null for variant-less products. */
+  variant: ProductVariant | null;
   quantity: number;
 };
+
+/** Cart map key = `${productId}::${variantId ?? "default"}`. */
+function cartKey(productId: string, variantId: string | null): string {
+  return `${productId}::${variantId ?? "default"}`;
+}
 
 type Ctx = {
   user: User | null;
@@ -39,9 +46,24 @@ type Ctx = {
   cartItems: CartItem[];
   cartCount: number;
   cartSubtotalCents: number;
-  setCartQuantity: (product: ProductWithBatch, quantity: number) => void;
-  incrementCart: (product: ProductWithBatch) => void;
-  decrementCart: (product: ProductWithBatch) => void;
+  /** Returns the qty of (product × variant) currently in cart. */
+  getCartQuantity: (
+    product: ProductWithBatch,
+    variant: ProductVariant | null,
+  ) => number;
+  setCartQuantity: (
+    product: ProductWithBatch,
+    variant: ProductVariant | null,
+    quantity: number,
+  ) => void;
+  incrementCart: (
+    product: ProductWithBatch,
+    variant: ProductVariant | null,
+  ) => void;
+  decrementCart: (
+    product: ProductWithBatch,
+    variant: ProductVariant | null,
+  ) => void;
   clearCart: () => void;
   /** Open checkout, prompting auth first if needed. */
   startCheckout: () => void;
@@ -100,16 +122,18 @@ export function AppProvider({
   }, [supabase]);
 
   const setCartQuantity = useCallback(
-    (product: ProductWithBatch, quantity: number) => {
+    (
+      product: ProductWithBatch,
+      variant: ProductVariant | null,
+      quantity: number,
+    ) => {
+      const key = cartKey(product.id, variant?.id ?? null);
       setCart((prev) => {
         const next = new Map(prev);
-        const max = Math.max(
-          0,
-          product.moq - product.batch.units_reserved,
-        );
+        const max = Math.max(0, product.moq - product.batch.units_reserved);
         const clamped = Math.max(0, Math.min(10, Math.min(max, quantity)));
-        if (clamped <= 0) next.delete(product.id);
-        else next.set(product.id, { product, quantity: clamped });
+        if (clamped <= 0) next.delete(key);
+        else next.set(key, { product, variant, quantity: clamped });
         return next;
       });
     },
@@ -117,14 +141,15 @@ export function AppProvider({
   );
 
   const incrementCart = useCallback(
-    (product: ProductWithBatch) => {
+    (product: ProductWithBatch, variant: ProductVariant | null) => {
+      const key = cartKey(product.id, variant?.id ?? null);
       setCart((prev) => {
-        const cur = prev.get(product.id)?.quantity ?? 0;
+        const cur = prev.get(key)?.quantity ?? 0;
         const next = new Map(prev);
         const max = Math.max(0, product.moq - product.batch.units_reserved);
         const clamped = Math.max(0, Math.min(10, Math.min(max, cur + 1)));
-        if (clamped <= 0) next.delete(product.id);
-        else next.set(product.id, { product, quantity: clamped });
+        if (clamped <= 0) next.delete(key);
+        else next.set(key, { product, variant, quantity: clamped });
         return next;
       });
     },
@@ -132,13 +157,14 @@ export function AppProvider({
   );
 
   const decrementCart = useCallback(
-    (product: ProductWithBatch) => {
+    (product: ProductWithBatch, variant: ProductVariant | null) => {
+      const key = cartKey(product.id, variant?.id ?? null);
       setCart((prev) => {
-        const cur = prev.get(product.id)?.quantity ?? 0;
+        const cur = prev.get(key)?.quantity ?? 0;
         const next = new Map(prev);
         const target = cur - 1;
-        if (target <= 0) next.delete(product.id);
-        else next.set(product.id, { product, quantity: target });
+        if (target <= 0) next.delete(key);
+        else next.set(key, { product, variant, quantity: target });
         return next;
       });
     },
@@ -165,6 +191,13 @@ export function AppProvider({
     [cartItems],
   );
 
+  const getCartQuantity = useCallback(
+    (product: ProductWithBatch, variant: ProductVariant | null) => {
+      return cart.get(cartKey(product.id, variant?.id ?? null))?.quantity ?? 0;
+    },
+    [cart],
+  );
+
   const startCheckout = useCallback(() => {
     if (!user) {
       setModal({
@@ -187,6 +220,7 @@ export function AppProvider({
     cartItems,
     cartCount,
     cartSubtotalCents,
+    getCartQuantity,
     setCartQuantity,
     incrementCart,
     decrementCart,

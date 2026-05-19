@@ -113,3 +113,17 @@ from seeded;
 -- Keep the DB price_curve consistent with the runtime margin curve helper.
 update public.products
    set price_curve = public.margin_curve(est_production_cost_cents);
+
+-- Variants — currently only the Pillowcase has them (3 colors).
+delete from public.product_variants
+ where product_id in (select id from public.products);
+
+insert into public.product_variants (product_id, name, swatch_hex, sort_order)
+select p.id, v.name, v.swatch_hex, v.sort_order
+  from public.products p
+  cross join (values
+    ('White', '#F4F1ED', 1),
+    ('Pink',  '#E8B4B8', 2),
+    ('Navy',  '#1E2A44', 3)
+  ) as v(name, swatch_hex, sort_order)
+ where p.name = 'Mulberry Silk Pillowcase';

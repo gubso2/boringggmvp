@@ -4,7 +4,7 @@ import type { ProductWithBatch } from "@/lib/types";
 export function ProductGrid({ products }: { products: ProductWithBatch[] }) {
   return (
     <section id="drops" className="scroll-mt-24">
-      <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
+      <div className="mx-auto max-w-screen-2xl px-6 py-12 sm:py-16">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
             <h2 className="font-display text-3xl font-semibold tracking-tight text-ink-950 sm:text-4xl">

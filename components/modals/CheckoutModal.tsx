@@ -79,6 +79,7 @@ export function CheckoutModal() {
           items: cartItems.map((i) => ({
             batch_id: i.product.batch.id,
             quantity: i.quantity,
+            variant_id: i.variant?.id ?? null,
           })),
           pay_double: payDouble,
         }),
@@ -207,12 +208,28 @@ export function CheckoutModal() {
                 item.product.price_curve,
               );
               const lineTotal = price * item.quantity;
+              const lineKey = `${item.product.id}::${item.variant?.id ?? "default"}`;
               return (
-                <li key={item.product.id} className="py-3">
+                <li key={lineKey} className="py-3">
                   {/* Row 1 — name + line total, always side-by-side */}
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="truncate text-sm font-medium text-ink-950">
-                      {item.product.name}
+                    <span className="flex min-w-0 items-center gap-2 truncate text-sm font-medium text-ink-950">
+                      {item.variant?.swatch_hex && (
+                        <span
+                          className="inline-block h-3 w-3 shrink-0 rounded-full ring-1 ring-black/15"
+                          style={{ background: item.variant.swatch_hex }}
+                          aria-hidden
+                        />
+                      )}
+                      <span className="truncate">
+                        {item.product.name}
+                        {item.variant && (
+                          <span className="text-ink-500">
+                            {" "}
+                            · {item.variant.name}
+                          </span>
+                        )}
+                      </span>
                     </span>
                     <span className="shrink-0 text-sm font-semibold tabular-nums text-ink-950">
                       {formatPrice(lineTotal)}
@@ -227,7 +244,7 @@ export function CheckoutModal() {
                       <button
                         type="button"
                         aria-label="Decrease"
-                        onClick={() => decrementCart(item.product)}
+                        onClick={() => decrementCart(item.product, item.variant)}
                         className="grid h-8 w-8 place-items-center rounded-full bg-white hairline text-ink-700 transition hover:bg-ink-50"
                       >
                         <Minus size={12} />
@@ -238,7 +255,7 @@ export function CheckoutModal() {
                       <button
                         type="button"
                         aria-label="Increase"
-                        onClick={() => incrementCart(item.product)}
+                        onClick={() => incrementCart(item.product, item.variant)}
                         className="grid h-8 w-8 place-items-center rounded-full bg-white hairline text-ink-700 transition hover:bg-ink-50"
                       >
                         <Plus size={12} />
@@ -246,7 +263,9 @@ export function CheckoutModal() {
                       <button
                         type="button"
                         aria-label="Remove"
-                        onClick={() => setCartQuantity(item.product, 0)}
+                        onClick={() =>
+                          setCartQuantity(item.product, item.variant, 0)
+                        }
                         className="ml-1 grid h-8 w-8 place-items-center rounded-full text-ink-400 transition hover:bg-black/5 hover:text-ink-700"
                       >
                         <Trash2 size={12} />

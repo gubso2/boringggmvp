@@ -5,9 +5,18 @@ import { useApp } from "@/components/AppProvider";
 import { Button } from "@/components/shared/Button";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { formatPrice } from "@/lib/utils";
-import type { Batch, Product, Reservation } from "@/lib/types";
+import type {
+  Batch,
+  Product,
+  ProductVariant,
+  Reservation,
+} from "@/lib/types";
 
-type Row = Reservation & { product: Product; batch: Batch };
+type Row = Reservation & {
+  product: Product;
+  batch: Batch;
+  variant: ProductVariant | null;
+};
 
 const STATUS_LABEL: Record<Reservation["status"], string> = {
   pending: "Pending payment",
@@ -59,8 +68,20 @@ export function DashboardView({ reservations }: { reservations: Row[] }) {
             <div className="flex flex-1 flex-col gap-2 px-1 sm:px-0">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-[15px] font-medium tracking-tight text-ink-950">
-                    {r.product.name}
+                  <div className="flex items-center gap-2 text-[15px] font-medium tracking-tight text-ink-950">
+                    {r.variant?.swatch_hex && (
+                      <span
+                        className="inline-block h-3 w-3 shrink-0 rounded-full ring-1 ring-black/15"
+                        style={{ background: r.variant.swatch_hex }}
+                        aria-hidden
+                      />
+                    )}
+                    <span>
+                      {r.product.name}
+                      {r.variant && (
+                        <span className="text-ink-500"> · {r.variant.name}</span>
+                      )}
+                    </span>
                   </div>
                   <div className="mt-0.5 text-xs text-ink-500">
                     {r.quantity} × {formatPrice(r.unit_price_cents)} ={" "}

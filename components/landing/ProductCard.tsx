@@ -8,27 +8,25 @@ import { useBatchRealtime } from "@/lib/realtime";
 import { currentPriceCents } from "@/lib/pricing";
 import { formatPrice } from "@/lib/utils";
 import { categoryIcon, categoryLabel } from "@/lib/categories";
-import type { ProductWithBatch } from "@/lib/types";
+import type { ProductVariant, ProductWithBatch } from "@/lib/types";
 import { Info, Minus, Plus } from "lucide-react";
 
 export function ProductCard({ product }: { product: ProductWithBatch }) {
-  const { setModal, cartItems, setCartQuantity, incrementCart, decrementCart } =
-    useApp();
+  const { setModal, getCartQuantity, incrementCart, decrementCart } = useApp();
   const batch = useBatchRealtime(product.batch);
   const [imgFailed, setImgFailed] = useState(false);
 
-  const productWithLatestBatch: ProductWithBatch = { ...product, batch };
-  const inCart =
-    cartItems.find((i) => i.product.id === product.id)?.quantity ?? 0;
+  // Variant selection — first variant by sort order, or null if none.
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    product.variants[0]?.id ?? null,
+  );
+  const selectedVariant: ProductVariant | null =
+    product.variants.find((v) => v.id === selectedVariantId) ??
+    product.variants[0] ??
+    null;
 
-  // Keep the cart entry's batch state in sync with realtime so the cart total
-  // is always computed from the latest units_reserved.
-  useEffect(() => {
-    if (inCart > 0) {
-      setCartQuantity(productWithLatestBatch, inCart);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [batch.units_reserved]);
+  const productWithLatestBatch: ProductWithBatch = { ...product, batch };
+  const inCart = getCartQuantity(productWithLatestBatch, selectedVariant);
 
   const price = currentPriceCents(
     batch.units_reserved,
@@ -44,6 +42,13 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
   const CategoryIcon = categoryIcon(product.category);
   const categoryName = categoryLabel(product.category);
 
+  // If the user re-selects a variant, also re-sync — batch may have moved
+  // and we want the price computation up to date for that key.
+  useEffect(() => {
+    // intentional no-op; the effect just re-renders the cart line via the
+    // latest batch when realtime ticks
+  }, [batch.units_reserved, selectedVariantId]);
+
   return (
     <article className="group flex flex-col gap-4 rounded-3xl bg-white p-3 hairline transition hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-16px_rgba(0,0,0,0.18)]">
       <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-ink-100">
@@ -52,7 +57,7 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
             src={product.image_url}
             alt={product.name}
             fill
-            sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+            sizes="(min-width: 1024px) 280px, (min-width: 640px) 50vw, 100vw"
             className="object-cover transition duration-500 group-hover:scale-[1.03]"
             onError={() => setImgFailed(true)}
           />
@@ -97,6 +102,36 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
           </div>
         </div>
 
+        {/* Variant swatches */}
+        {product.variants.length > 0 && (
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              {product.variants.map((v) => {
+                const active = v.id === selectedVariant?.id;
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setSelectedVariantId(v.id)}
+                    className={`relative h-6 w-6 rounded-full border-2 transition ${
+                      active
+                        ? "border-ink-950 scale-110"
+                        : "border-white ring-1 ring-black/10 hover:ring-black/30"
+                    }`}
+                    style={{ background: v.swatch_hex ?? "#e5e7eb" }}
+                    aria-label={v.name}
+                    aria-pressed={active}
+                    title={v.name}
+                  />
+                );
+              })}
+            </div>
+            <span className="text-[11px] text-ink-500">
+              {selectedVariant?.name}
+            </span>
+          </div>
+        )}
+
         <div className="flex items-center justify-between text-[11px]">
           <span className="text-ink-600">
             <span className="font-medium text-ink-950">
@@ -111,7 +146,9 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => decrementCart(productWithLatestBatch)}
+            onClick={() =>
+              decrementCart(productWithLatestBatch, selectedVariant)
+            }
             disabled={disabled || inCart === 0}
             className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white hairline text-ink-700 transition hover:bg-ink-50 disabled:opacity-30"
             aria-label="Decrease quantity"
@@ -133,7 +170,9 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
           </div>
           <button
             type="button"
-            onClick={() => incrementCart(productWithLatestBatch)}
+            onClick={() =>
+              incrementCart(productWithLatestBatch, selectedVariant)
+            }
             disabled={disabled || atMax}
             className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ink-950 text-white transition hover:bg-ink-800 disabled:opacity-30"
             aria-label="Increase quantity"

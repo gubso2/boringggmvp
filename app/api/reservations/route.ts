@@ -13,6 +13,7 @@ const Body = z.object({
       z.object({
         batch_id: z.string().uuid(),
         quantity: z.number().int().min(1).max(10),
+        variant_id: z.string().uuid().nullable().optional(),
       }),
     )
     .min(1)
@@ -78,6 +79,7 @@ export async function POST(req: Request) {
   const multiplier = !hasInvited && body.pay_double ? 2 : 1;
   const lines: Array<{
     batch_id: string;
+    variant_id: string | null;
     quantity: number;
     unit_price_cents: number;
     total_cents: number;
@@ -109,8 +111,26 @@ export async function POST(req: Request) {
       batch.product.est_production_cost_cents,
     );
     const unitPrice = basePrice * multiplier;
+
+    // Validate the variant_id (if any) actually belongs to this batch's product.
+    let variantId: string | null = item.variant_id ?? null;
+    if (variantId) {
+      const { data: variantRow } = await admin
+        .from("product_variants")
+        .select("id, product_id")
+        .eq("id", variantId)
+        .maybeSingle();
+      if (!variantRow || variantRow.product_id !== batch.product.id) {
+        return NextResponse.json(
+          { error: `Invalid variant for ${batch.product.name}` },
+          { status: 400 },
+        );
+      }
+    }
+
     lines.push({
       batch_id: batch.id,
+      variant_id: variantId,
       quantity: item.quantity,
       unit_price_cents: unitPrice,
       total_cents: unitPrice * item.quantity,
@@ -126,6 +146,7 @@ export async function POST(req: Request) {
       lines.map((l) => ({
         user_id: user.id,
         batch_id: l.batch_id,
+        variant_id: l.variant_id,
         quantity: l.quantity,
         unit_price_cents: l.unit_price_cents,
         total_paid_cents: l.total_cents,

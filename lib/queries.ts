@@ -3,6 +3,7 @@ import { marginCurve } from "./pricing";
 import type {
   Batch,
   Product,
+  ProductVariant,
   ProductWithBatch,
   Reservation,
 } from "./types";
@@ -35,6 +36,7 @@ function normalizeProduct(p: Partial<Product> & Pick<Product, "id" | "est_produc
     specs: p.specs ?? [],
     health_benefit: p.health_benefit ?? null,
     category: p.category ?? "general",
+    variants: p.variants ?? [],
     created_at: p.created_at ?? "",
     price_curve: marginCurve(p.est_production_cost_cents),
   };
@@ -54,19 +56,44 @@ export async function getProductsWithBatches(): Promise<ProductWithBatch[]> {
     .eq("status", "active");
   if (bErr) throw bErr;
 
-  const byProduct = new Map<string, Batch>();
-  for (const b of batches as Batch[]) byProduct.set(b.product_id, b);
+  const { data: variants, error: vErr } = await supabase
+    .from("product_variants")
+    .select("*")
+    .order("sort_order", { ascending: true });
+  if (vErr) throw vErr;
+
+  const batchByProduct = new Map<string, Batch>();
+  for (const b of batches as Batch[]) batchByProduct.set(b.product_id, b);
+
+  const variantsByProduct = new Map<string, ProductVariant[]>();
+  for (const v of (variants ?? []) as ProductVariant[]) {
+    const arr = variantsByProduct.get(v.product_id) ?? [];
+    arr.push(v);
+    variantsByProduct.set(v.product_id, arr);
+  }
 
   return (products as Product[])
     .map((p) => {
-      const batch = byProduct.get(p.id);
-      return batch ? { ...normalizeProduct(p), batch } : null;
+      const batch = batchByProduct.get(p.id);
+      if (!batch) return null;
+      const normalized = normalizeProduct(p);
+      return {
+        ...normalized,
+        variants: variantsByProduct.get(p.id) ?? [],
+        batch,
+      };
     })
     .filter((x): x is ProductWithBatch => x !== null);
 }
 
 export async function getCurrentUserReservations(): Promise<
-  Array<Reservation & { product: Product; batch: Batch }>
+  Array<
+    Reservation & {
+      product: Product;
+      batch: Batch;
+      variant: ProductVariant | null;
+    }
+  >
 > {
   const supabase = await createSupabaseServerClient();
   const {
@@ -76,16 +103,22 @@ export async function getCurrentUserReservations(): Promise<
 
   const { data, error } = await supabase
     .from("reservations")
-    .select("*, batch:batches(*, product:products(*))")
+    .select(
+      "*, batch:batches(*, product:products(*)), variant:product_variants(*)",
+    )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
   if (error) throw error;
 
-  type Row = Reservation & { batch: Batch & { product: Product } };
+  type Row = Reservation & {
+    batch: Batch & { product: Product };
+    variant: ProductVariant | null;
+  };
   return (data as Row[]).map((r) => ({
     ...r,
     batch: r.batch,
     product: normalizeProduct(r.batch.product),
+    variant: r.variant ?? null,
   }));
 }
 
