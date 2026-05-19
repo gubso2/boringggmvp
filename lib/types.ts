@@ -27,6 +27,8 @@ export type Product = {
   est_production_cost_cents: number;
   comparable_brand_name: string;
   comparable_brand_price_cents: number;
+  /** Brand website used in the InfoModal "vs." link. External URL. */
+  comparable_brand_url: string | null;
   /** Lifestyle / in-use shot. Falls back to image_url if null. */
   in_use_image_url: string | null;
   /** Items shipped in the box. */

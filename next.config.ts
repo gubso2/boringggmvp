@@ -10,6 +10,16 @@ const nextConfig: NextConfig = {
   // No ESLint config in repo; skip lint at build time so Vercel doesn't hang
   // on the interactive setup prompt. TypeScript still runs.
   eslint: { ignoreDuringBuilds: true },
+  // Strip the Referer header from every outbound click so destination sites
+  // never see boringgg.com as the traffic source. Applied to all paths.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

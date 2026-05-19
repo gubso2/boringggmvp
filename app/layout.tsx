@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   ),
+  // Belt-and-suspenders with the `Referrer-Policy` header in next.config.ts:
+  // emits `<meta name="referrer" content="no-referrer">` so even if a future
+  // host strips the header, outbound clicks still don't leak the source URL.
+  referrer: "no-referrer",
 };
 
 export const viewport = {

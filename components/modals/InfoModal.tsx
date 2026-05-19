@@ -3,9 +3,10 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Modal } from "@/components/shared/Modal";
+import { ExternalLink } from "@/components/shared/ExternalLink";
 import { useApp } from "@/components/AppProvider";
 import { formatPrice } from "@/lib/utils";
-import { Heart, Package, Sparkles } from "lucide-react";
+import { ArrowUpRight, Heart, Package, Sparkles } from "lucide-react";
 
 export function InfoModal() {
   const { modal, setModal } = useApp();
@@ -126,15 +127,22 @@ export function InfoModal() {
         {/* Comparison spec table */}
         {product.specs.length > 0 && (
           <div>
-            <div className="mb-2 flex items-center gap-2">
-              <Sparkles
-                size={14}
-                strokeWidth={2}
-                className="text-ink-700"
-              />
-              <span className="text-[11px] font-medium uppercase tracking-wider text-ink-700">
-                vs. {product.comparable_brand_name}
-              </span>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Sparkles size={14} strokeWidth={2} className="text-ink-700" />
+                <span className="text-[11px] font-medium uppercase tracking-wider text-ink-700">
+                  vs. {product.comparable_brand_name}
+                </span>
+              </div>
+              {product.comparable_brand_url && (
+                <ExternalLink
+                  href={product.comparable_brand_url}
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium text-ink-600 transition hover:bg-black/5 hover:text-ink-950"
+                >
+                  Visit website
+                  <ArrowUpRight size={11} strokeWidth={2.25} />
+                </ExternalLink>
+              )}
             </div>
             <div className="overflow-hidden rounded-2xl bg-ink-50">
               <div className="grid grid-cols-[1fr_1fr_1fr] gap-px bg-ink-200/60 text-[13px]">

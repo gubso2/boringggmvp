@@ -27,6 +27,7 @@ function normalizeProduct(p: Partial<Product> & Pick<Product, "id" | "est_produc
     est_production_cost_cents: p.est_production_cost_cents,
     comparable_brand_name: p.comparable_brand_name ?? "",
     comparable_brand_price_cents: p.comparable_brand_price_cents ?? 0,
+    comparable_brand_url: p.comparable_brand_url ?? null,
     in_use_image_url: p.in_use_image_url ?? null,
     in_box: p.in_box ?? [],
     specs: p.specs ?? [],

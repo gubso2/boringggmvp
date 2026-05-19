@@ -276,3 +276,21 @@ update public.products
      when 'Weighted Blanket 15 lb'               then 'sleep'
      else 'general'
    end;
+
+-- Link each comparable brand's website so InfoModal can deep-link out.
+update public.products
+   set comparable_brand_url = case comparable_brand_name
+     when 'Bose QuietComfort'        then 'https://www.bose.com'
+     when 'Keychron Q2 Pro'          then 'https://www.keychron.com'
+     when 'Reigning Champ Midweight' then 'https://reigningchamp.com'
+     when 'Allbirds Tree Runners'    then 'https://www.allbirds.com'
+     when 'Fellow Clara'             then 'https://fellowproducts.com'
+     when 'Brooklinen Linen Core'    then 'https://www.brooklinen.com'
+     when 'HidrateSpark PRO'         then 'https://hidratespark.com'
+     when 'Bellroy Hide & Seek'      then 'https://bellroy.com'
+     when 'Apple AirTag 4-pack'      then 'https://www.apple.com/airtag/'
+     when 'Bowflex SelectTech 552'   then 'https://www.bowflex.com'
+     when 'Kyocera Revolution 4pc'   then 'https://kyoceraadvancedceramics.com'
+     when 'Gravity Blanket Original' then 'https://gravityblankets.com'
+     else null
+   end;
