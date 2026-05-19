@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useApp } from "@/components/AppProvider";
 import { Button } from "@/components/shared/Button";
-import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { formatPrice } from "@/lib/utils";
 import type {
   Batch,
@@ -103,9 +102,6 @@ export function DashboardView({ reservations }: { reservations: Row[] }) {
                 </span>
               </div>
 
-              <div className="flex justify-end text-[11px] text-ink-500">
-                <CountdownTimer endAt={batch.end_at} compact />
-              </div>
             </div>
 
             <div className="flex items-center justify-end gap-2 sm:flex-col sm:items-stretch sm:justify-center">

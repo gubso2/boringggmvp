@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { useApp } from "@/components/AppProvider";
 import { useBatchRealtime } from "@/lib/realtime";
 import { currentPriceCents } from "@/lib/pricing";
@@ -137,11 +136,6 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
             </span>
           </div>
         )}
-
-        {/* Countdown only — unit tracker is gone */}
-        <div className="flex justify-end">
-          <CountdownTimer endAt={batch.end_at} compact />
-        </div>
 
         {/* Quantity stepper — minus left, plus right */}
         <div className="flex items-center gap-2">
