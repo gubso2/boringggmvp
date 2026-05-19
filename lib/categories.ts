@@ -9,6 +9,8 @@ import {
   Moon,
   Radio,
   Shirt,
+  ShowerHead,
+  Snowflake,
   Sparkles,
   UtensilsCrossed,
   Wallet,
@@ -32,6 +34,8 @@ const ICONS: Record<string, LucideIcon> = {
   fitness: Dumbbell,
   kitchen: UtensilsCrossed,
   sleep: Moon,
+  bath: ShowerHead,
+  recovery: Snowflake,
 };
 
 const LABELS: Record<string, string> = {
@@ -47,6 +51,8 @@ const LABELS: Record<string, string> = {
   fitness: "Fitness",
   kitchen: "Kitchen",
   sleep: "Sleep",
+  bath: "Bath",
+  recovery: "Recovery",
 };
 
 export function categoryIcon(category: string): LucideIcon {
