@@ -5,20 +5,6 @@ export function ProductGrid({ products }: { products: ProductWithBatch[] }) {
   return (
     <section id="drops" className="scroll-mt-24">
       <div className="px-3 py-12 sm:px-4 sm:py-16 lg:px-6">
-        <div className="mx-auto mb-8 flex max-w-screen-2xl items-end justify-between gap-4">
-          <div>
-            <h2 className="font-display text-3xl font-semibold tracking-tight text-ink-950 sm:text-4xl">
-              This week&rsquo;s drops
-            </h2>
-            <p className="mt-2 text-sm text-ink-500">
-              Each closes in 7 days. Earlier you&rsquo;re in, less you pay.
-            </p>
-          </div>
-          <span className="hidden font-mono text-xs text-ink-400 sm:block">
-            {products.length} live
-          </span>
-        </div>
-
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((p) => (
             <ProductCard key={p.id} product={p} />
