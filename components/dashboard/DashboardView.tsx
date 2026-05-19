@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useApp } from "@/components/AppProvider";
 import { Button } from "@/components/shared/Button";
-import { ProgressBar } from "@/components/shared/ProgressBar";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { formatPrice } from "@/lib/utils";
 import type { Batch, Product, Reservation } from "@/lib/types";
@@ -33,10 +32,6 @@ export function DashboardView({ reservations }: { reservations: Row[] }) {
     <ul className="space-y-3">
       {reservations.map((r) => {
         const batch = r.batch;
-        const filled = Math.max(
-          0,
-          Math.min(1, batch.units_reserved / r.product.moq),
-        );
         const closed =
           batch.status !== "active" || new Date(batch.end_at) < new Date();
         const canRefund = r.status === "paid" && !closed;
@@ -87,14 +82,11 @@ export function DashboardView({ reservations }: { reservations: Row[] }) {
                 </span>
               </div>
 
-              <div>
-                <div className="mb-1 flex items-center justify-between text-[11px] text-ink-500">
-                  <span>
-                    {batch.units_reserved} / {r.product.moq} units
-                  </span>
-                  <CountdownTimer endAt={batch.end_at} compact />
-                </div>
-                <ProgressBar value={filled} />
+              <div className="flex items-center justify-between text-[11px] text-ink-500">
+                <span>
+                  {batch.units_reserved} / {r.product.moq} units
+                </span>
+                <CountdownTimer endAt={batch.end_at} compact />
               </div>
             </div>
 

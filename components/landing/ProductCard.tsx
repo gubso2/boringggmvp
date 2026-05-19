@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { ProgressBar } from "@/components/shared/ProgressBar";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { useApp } from "@/components/AppProvider";
 import { useBatchRealtime } from "@/lib/realtime";
@@ -31,7 +30,6 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [batch.units_reserved]);
 
-  const filled = Math.max(0, Math.min(1, batch.units_reserved / product.moq));
   const price = currentPriceCents(
     batch.units_reserved,
     product.moq,
@@ -99,17 +97,14 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
           </div>
         </div>
 
-        <div>
-          <div className="mb-1.5 flex items-center justify-between text-[11px]">
-            <span className="text-ink-600">
-              <span className="font-medium text-ink-950">
-                {batch.units_reserved}
-              </span>{" "}
-              / {product.moq} units
-            </span>
-            <CountdownTimer endAt={batch.end_at} compact />
-          </div>
-          <ProgressBar value={filled} />
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="text-ink-600">
+            <span className="font-medium text-ink-950">
+              {batch.units_reserved}
+            </span>{" "}
+            / {product.moq} units
+          </span>
+          <CountdownTimer endAt={batch.end_at} compact />
         </div>
 
         {/* Quantity stepper — minus left, plus right */}
