@@ -42,12 +42,12 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
   }
 
   return (
-    <article className="group flex flex-col gap-4 rounded-3xl bg-white p-3 hairline transition hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-16px_rgba(0,0,0,0.18)]">
+    <article className="group flex flex-col">
       {/* The whole hero is a button into the InfoModal */}
       <button
         type="button"
         onClick={openInfo}
-        className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-ink-100 text-left"
+        className="relative aspect-[4/5] overflow-hidden bg-ink-100 text-left"
         aria-label={`More about ${product.name}`}
       >
         {!imgFailed ? (
@@ -55,7 +55,7 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
             src={product.image_url}
             alt={product.name}
             fill
-            sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+            sizes="(min-width: 1024px) 480px, (min-width: 640px) 50vw, 100vw"
             className="object-cover transition duration-500 group-hover:scale-[1.03]"
             onError={() => setImgFailed(true)}
           />
@@ -87,7 +87,7 @@ export function ProductCard({ product }: { product: ProductWithBatch }) {
         )}
       </button>
 
-      <div className="flex flex-col gap-3 px-1.5 pb-1.5">
+      <div className="flex flex-col gap-3 px-1 pt-3 sm:px-2">
         {/* Clicking the title also opens the info modal */}
         <button
           type="button"
