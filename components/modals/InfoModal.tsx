@@ -145,14 +145,14 @@ export function InfoModal() {
               )}
             </div>
             <div className="overflow-hidden rounded-2xl bg-ink-50">
-              <div className="grid grid-cols-[1fr_1fr_1fr] gap-px bg-ink-200/60 text-[13px]">
-                <div className="bg-ink-50 px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-500">
+              <div className="grid grid-cols-[minmax(80px,1fr)_1fr_1fr] gap-px bg-ink-200/60 text-[12px] sm:text-[13px]">
+                <div className="bg-ink-50 px-2.5 py-2 text-[10px] font-medium uppercase tracking-wider text-ink-500 sm:text-[11px] sm:px-3">
                   Spec
                 </div>
-                <div className="bg-ink-50 px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-950">
+                <div className="bg-ink-50 px-2.5 py-2 text-[10px] font-medium uppercase tracking-wider text-ink-950 sm:text-[11px] sm:px-3">
                   Boringgg
                 </div>
-                <div className="bg-ink-50 px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ink-500">
+                <div className="bg-ink-50 px-2.5 py-2 text-[10px] font-medium uppercase tracking-wider text-ink-500 sm:text-[11px] sm:px-3">
                   {product.comparable_brand_name}
                 </div>
                 {product.specs.map((row) => (
@@ -208,15 +208,19 @@ function SpecRow({
   const same = row.ours.trim().toLowerCase() === row.theirs.trim().toLowerCase();
   return (
     <>
-      <div className="bg-white px-3 py-2 text-ink-500">{row.label}</div>
+      <div className="bg-white px-2.5 py-2 text-ink-500 sm:px-3">
+        {row.label}
+      </div>
       <div
-        className={`bg-white px-3 py-2 font-medium ${
+        className={`bg-white px-2.5 py-2 font-medium sm:px-3 ${
           same ? "text-ink-700" : "text-ink-950"
         }`}
       >
         {row.ours}
       </div>
-      <div className="bg-white px-3 py-2 text-ink-500">{row.theirs}</div>
+      <div className="bg-white px-2.5 py-2 text-ink-500 sm:px-3">
+        {row.theirs}
+      </div>
     </>
   );
 }

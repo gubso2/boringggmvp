@@ -18,6 +18,9 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#ffffff",
+  // Let content extend behind iPhone notches / dynamic island so glass nav +
+  // sticky cart bar can read the safe-area-inset CSS env() vars.
+  viewportFit: "cover" as const,
 };
 
 export default function RootLayout({

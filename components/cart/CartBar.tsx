@@ -19,7 +19,7 @@ export function CartBar() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 24 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed inset-x-0 bottom-3 z-40 flex justify-center px-3 sm:bottom-6"
+          className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[max(env(safe-area-inset-bottom),12px)] sm:pb-[max(env(safe-area-inset-bottom),24px)]"
         >
           <div className="glass w-full max-w-md overflow-hidden rounded-3xl shadow-xl">
             {/* Shipping nudge — slim row */}
@@ -57,17 +57,23 @@ export function CartBar() {
             <button
               type="button"
               onClick={startCheckout}
-              className="group flex w-full items-center gap-3 p-1.5 pl-4 text-sm transition hover:scale-[1.005]"
+              className="group flex w-full items-center gap-2 p-1.5 pl-3 text-sm transition hover:scale-[1.005] sm:gap-3 sm:pl-4"
             >
-              <ShoppingBag size={16} strokeWidth={2} className="text-ink-950" />
+              <ShoppingBag
+                size={16}
+                strokeWidth={2}
+                className="shrink-0 text-ink-950"
+              />
               <span className="text-ink-950">
-                <span className="font-semibold tabular-nums">{cartCount}</span>{" "}
-                {cartCount === 1 ? "item" : "items"}
+                <span className="font-semibold tabular-nums">{cartCount}</span>
+                <span className="ml-1 hidden sm:inline">
+                  {cartCount === 1 ? "item" : "items"}
+                </span>
               </span>
               <span className="ml-auto font-semibold tabular-nums text-ink-950">
                 {formatPrice(cartSubtotalCents)}
               </span>
-              <span className="ml-1 inline-flex h-9 items-center rounded-full bg-ink-950 px-4 text-sm font-medium text-white transition group-hover:bg-ink-800">
+              <span className="inline-flex h-9 shrink-0 items-center rounded-full bg-ink-950 px-3.5 text-sm font-medium text-white transition group-hover:bg-ink-800 sm:px-4">
                 Checkout
               </span>
             </button>

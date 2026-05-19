@@ -199,57 +199,59 @@ export function CheckoutModal() {
             </div>
           )}
 
-          <ul className="divide-y divide-black/5 rounded-2xl bg-ink-50 px-4">
+          <ul className="divide-y divide-black/5 rounded-2xl bg-ink-50 px-3 sm:px-4">
             {cartItems.map((item) => {
               const price = currentPriceCents(
                 item.product.batch.units_reserved,
                 item.product.moq,
                 item.product.price_curve,
               );
+              const lineTotal = price * item.quantity;
               return (
-                <li
-                  key={item.product.id}
-                  className="flex items-center gap-3 py-3"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-ink-950">
+                <li key={item.product.id} className="py-3">
+                  {/* Row 1 — name + line total, always side-by-side */}
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="truncate text-sm font-medium text-ink-950">
                       {item.product.name}
-                    </div>
-                    <div className="text-xs text-ink-500">
-                      {formatPrice(price)} each
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      aria-label="Decrease"
-                      onClick={() => decrementCart(item.product)}
-                      className="grid h-7 w-7 place-items-center rounded-full bg-white hairline text-ink-700 transition hover:bg-ink-50"
-                    >
-                      <Minus size={12} />
-                    </button>
-                    <span className="w-6 text-center font-mono text-sm tabular-nums">
-                      {item.quantity}
                     </span>
-                    <button
-                      type="button"
-                      aria-label="Increase"
-                      onClick={() => incrementCart(item.product)}
-                      className="grid h-7 w-7 place-items-center rounded-full bg-white hairline text-ink-700 transition hover:bg-ink-50"
-                    >
-                      <Plus size={12} />
-                    </button>
+                    <span className="shrink-0 text-sm font-semibold tabular-nums text-ink-950">
+                      {formatPrice(lineTotal)}
+                    </span>
                   </div>
-                  <button
-                    type="button"
-                    aria-label="Remove"
-                    onClick={() => setCartQuantity(item.product, 0)}
-                    className="ml-1 grid h-7 w-7 place-items-center rounded-full text-ink-400 transition hover:bg-black/5 hover:text-ink-700"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                  <div className="w-20 text-right text-sm font-medium tabular-nums text-ink-950">
-                    {formatPrice(price * item.quantity)}
+                  {/* Row 2 — unit price + qty stepper + remove */}
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <span className="text-xs text-ink-500">
+                      {formatPrice(price)} each
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        aria-label="Decrease"
+                        onClick={() => decrementCart(item.product)}
+                        className="grid h-8 w-8 place-items-center rounded-full bg-white hairline text-ink-700 transition hover:bg-ink-50"
+                      >
+                        <Minus size={12} />
+                      </button>
+                      <span className="w-6 text-center font-mono text-sm tabular-nums">
+                        {item.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label="Increase"
+                        onClick={() => incrementCart(item.product)}
+                        className="grid h-8 w-8 place-items-center rounded-full bg-white hairline text-ink-700 transition hover:bg-ink-50"
+                      >
+                        <Plus size={12} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Remove"
+                        onClick={() => setCartQuantity(item.product, 0)}
+                        className="ml-1 grid h-8 w-8 place-items-center rounded-full text-ink-400 transition hover:bg-black/5 hover:text-ink-700"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                   </div>
                 </li>
               );

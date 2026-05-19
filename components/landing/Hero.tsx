@@ -7,7 +7,7 @@ export function Hero() {
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-ink-500 animate-fade-up [animation-delay:50ms] opacity-0">
           Group-buy at factory prices
         </p>
-        <h1 className="font-display text-[44px] font-semibold leading-[1.02] tracking-tight text-ink-950 sm:text-6xl lg:text-7xl animate-fade-up [animation-delay:120ms] opacity-0">
+        <h1 className="font-display text-[40px] font-semibold leading-[1.02] tracking-tight text-ink-950 sm:text-6xl lg:text-7xl animate-fade-up [animation-delay:120ms] opacity-0">
           Buy smarter.
           <br />
           <span className="text-ink-400">Pay less together.</span>

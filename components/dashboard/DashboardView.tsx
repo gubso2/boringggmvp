@@ -51,7 +51,7 @@ export function DashboardView({ reservations }: { reservations: Row[] }) {
             key={r.id}
             className="flex flex-col gap-4 rounded-3xl bg-white p-3 hairline sm:flex-row sm:items-center sm:p-4"
           >
-            <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-2xl bg-ink-100 sm:h-24 sm:w-32 sm:aspect-auto">
+            <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden rounded-2xl bg-ink-100 sm:aspect-auto sm:h-24 sm:w-32">
               <Image
                 src={r.product.image_url}
                 alt={r.product.name}

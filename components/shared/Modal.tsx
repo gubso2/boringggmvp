@@ -78,7 +78,9 @@ export function Modal({
                 <X size={18} />
               </button>
             </div>
-            <div className="px-6 pb-6">{children}</div>
+            <div className="px-6 pb-[max(env(safe-area-inset-bottom),24px)]">
+              {children}
+            </div>
           </motion.div>
         </motion.div>
       )}
