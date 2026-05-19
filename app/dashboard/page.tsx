@@ -30,7 +30,7 @@ export default async function DashboardPage() {
               Account
             </p>
             <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink-950 sm:text-4xl">
-              Your reservations
+              Your orders
             </h1>
             <p className="mt-2 text-sm text-ink-500">
               Signed in as{" "}

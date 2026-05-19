@@ -95,7 +95,7 @@ export function CheckoutModal() {
               You&rsquo;re in.
             </h3>
             <p className="mt-1 text-sm text-ink-500">
-              {cartCount} {cartCount === 1 ? "unit" : "units"} reserved across{" "}
+              {cartCount} {cartCount === 1 ? "item" : "items"} ordered across{" "}
               {cartItems.length} drop{cartItems.length === 1 ? "" : "s"} —{" "}
               {formatPrice(totalCents)} charged.
             </p>
@@ -205,8 +205,7 @@ export function CheckoutModal() {
                     </span>
                   </div>
                   <p className="text-[11px] leading-relaxed text-ink-500">
-                    Drop in two phone numbers we don&rsquo;t already have.
-                    Standard price.
+                    Bring two new people to unlock manufacturer-direct pricing.
                   </p>
                   <span className="mt-1 font-mono text-[10px] text-ink-400">
                     {Math.min(inviteCount, INVITES_REQUIRED)} /{" "}
@@ -226,11 +225,11 @@ export function CheckoutModal() {
                   <div className="flex items-center gap-2">
                     <Sparkles size={14} className="text-ink-700" />
                     <span className="text-sm font-semibold text-ink-950">
-                      Skip — pay double
+                      Skip — pay retail
                     </span>
                   </div>
                   <p className="text-[11px] leading-relaxed text-ink-500">
-                    No invites needed. You pay 2× total.
+                    No invites needed. You pay 2× — closer to brand-retail.
                   </p>
                   <span className="mt-1 font-mono text-[10px] text-ink-400">
                     {formatPrice(cartSubtotalCents * 2)}
@@ -272,7 +271,7 @@ export function CheckoutModal() {
               ? "Choose invite or pay double to continue"
               : busy
                 ? "Preparing…"
-                : `Pay & reserve · ${formatPrice(totalCents)}`}
+                : `Pay · ${formatPrice(totalCents)}`}
           </Button>
         </div>
       )}

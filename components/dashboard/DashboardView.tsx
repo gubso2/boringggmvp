@@ -30,7 +30,7 @@ export function DashboardView({ reservations }: { reservations: Row[] }) {
     return (
       <div className="rounded-3xl bg-ink-50 p-10 text-center">
         <p className="text-sm text-ink-500">
-          You haven&rsquo;t joined a batch yet. Browse the drops to get started.
+          No orders yet. Browse the drops to get started.
         </p>
       </div>
     );
@@ -44,7 +44,7 @@ export function DashboardView({ reservations }: { reservations: Row[] }) {
           batch.status !== "active" || new Date(batch.end_at) < new Date();
         const canRefund = r.status === "paid" && !closed;
         const batchLabel = closed
-          ? "Batch closed"
+          ? "Drop closed"
           : r.status === "refunded"
             ? "Refunded"
             : STATUS_LABEL[r.status];

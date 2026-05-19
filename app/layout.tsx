@@ -3,9 +3,9 @@ import "./globals.css";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 
 export const metadata: Metadata = {
-  title: "Boringgg — Buy smarter. Pay less together.",
+  title: "Boringgg — Same factories. No brand tax.",
   description:
-    "Group-buy drops at factory prices. Join a batch, invite two friends, pay less.",
+    "Buy direct from the manufacturers behind the brands you already trust. Same product, no retail markup.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   ),

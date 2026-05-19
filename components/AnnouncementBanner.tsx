@@ -13,14 +13,14 @@ type Slide = {
  * Keep messages short — the bar is one line tall.
  */
 const SLIDES: Slide[] = [
-  { text: "Buy smarter. Pay less together." },
+  { text: "Same factories. No brand tax." },
   {
-    text: "This week's drops — wellness essentials at factory cost",
+    text: "Direct from the manufacturer.",
     cta: { label: "SHOP NOW", href: "#drops" },
   },
   { text: "Free shipping on orders over $75." },
   {
-    text: "Invite 2 friends to unlock — or pay double to skip",
+    text: "Invite 2 friends to unlock manufacturer pricing.",
     cta: { label: "HOW IT WORKS", href: "#how-it-works" },
   },
 ];

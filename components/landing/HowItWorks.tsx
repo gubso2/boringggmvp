@@ -1,18 +1,18 @@
 const steps = [
   {
     n: "01",
-    title: "Join early.",
-    body: "Reserve your units while the batch is fresh — early tiers are the cheapest.",
+    title: "Find a product you love.",
+    body: "Every drop names the exact factory and lists the brands they already manufacture for.",
   },
   {
     n: "02",
-    title: "Invite two friends.",
-    body: "Drop in two phone numbers. We don't text them. We just need to know you brought people.",
+    title: "Invite two friends to unlock.",
+    body: "Direct factory pricing only opens when you bring two new people. Drop in their numbers — we don't text them.",
   },
   {
     n: "03",
-    title: "Batch closes in 7 days.",
-    body: "We bulk-order with the factory and ship to you. Refund anytime before close.",
+    title: "Ships from the factory.",
+    body: "Two-to-four week lead time. You pay what the factory charges its biggest brand customers, not the retail markup.",
   },
 ];
 
@@ -21,7 +21,7 @@ export function HowItWorks() {
     <section id="how-it-works" className="scroll-mt-24 bg-ink-50">
       <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
         <h2 className="max-w-2xl font-display text-3xl font-semibold tracking-tight text-ink-950 sm:text-4xl">
-          Three steps. Seven days. Factory price.
+          Three steps. Manufacturer direct.
         </h2>
 
         <div className="mt-12 grid grid-cols-1 gap-px overflow-hidden rounded-3xl bg-ink-200 sm:grid-cols-3">

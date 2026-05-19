@@ -41,14 +41,13 @@ export function RefundConfirmModal() {
     <Modal
       open
       onClose={() => setModal({ kind: "none" })}
-      title="Refund this reservation?"
+      title="Refund this order?"
     >
       <div className="space-y-4">
         <p className="text-sm text-ink-700">
-          We&rsquo;ll cancel your reservation for{" "}
-          <span className="font-medium">{productName}</span>, return your units
-          to the batch, and refund your card via Stripe. This usually settles
-          within a few business days.
+          We&rsquo;ll cancel your order for{" "}
+          <span className="font-medium">{productName}</span> and refund your
+          card via Stripe. This usually settles within a few business days.
         </p>
         {error && <p className="text-xs text-red-600">{error}</p>}
         <div className="flex flex-col gap-2 sm:flex-row">

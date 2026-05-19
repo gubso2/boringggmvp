@@ -1,6 +1,6 @@
 # Boringgg
 
-Group-buy eCommerce MVP. Users join 7-day batches at dynamic prices that increase as MOQ fills, must invite 2 new phone numbers to unlock purchase, pay upfront via Stripe, and can self-refund anytime before the batch closes.
+eCommerce MVP that connects shoppers directly to the manufacturers behind the brands they already trust. Same factories, same materials — without the retail markup. Users invite two new phone numbers to unlock manufacturer-direct pricing, pay upfront via Stripe, and can self-refund anytime before the production run ships.
 
 **Stack:** Next.js 15 (App Router) · TypeScript · Tailwind · Supabase (Postgres, Auth, Realtime) · Stripe · Vercel.
 

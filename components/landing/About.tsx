@@ -9,11 +9,11 @@ export function About() {
           Brand markup is the boring part. We removed it.
         </h2>
         <p className="mt-6 text-[17px] leading-relaxed text-ink-600">
-          Most of what you pay for a product is brand, advertising, retail, and
-          margin. The factory cost is a small fraction. Boringgg pools demand
-          from a few hundred buyers to hit factory MOQs, then ships the same
-          product the brands ship — without the parts that have nothing to do
-          with the product.
+          Most of what you pay for a product is brand, advertising, retail,
+          and margin. The factory cost is a small fraction. Boringgg connects
+          you directly to the manufacturers behind the brands you already
+          trust — same materials, same machines, same QC — just without the
+          parts that have nothing to do with the product.
         </p>
         <p className="mt-4 text-[17px] leading-relaxed text-ink-600">
           We&rsquo;re only as good as the manufacturers we partner with. Every

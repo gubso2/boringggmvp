@@ -72,10 +72,11 @@ export function InviteModal() {
     <Modal open={open} onClose={close} title="Invite to unlock">
       <div className="space-y-4">
         <p className="text-sm text-ink-500">
-          Boringgg works because everyone brings someone. Add{" "}
+          Manufacturer-direct pricing only unlocks when you bring new people.
+          Add{" "}
           <span className="font-medium text-ink-950">{stillNeeded}</span> phone
-          {stillNeeded === 1 ? "" : "s"} of friends who don&rsquo;t have an
-          account yet.
+          {stillNeeded === 1 ? "" : "s"} of friends who don&rsquo;t have a
+          Boringgg account yet.
         </p>
 
         <form onSubmit={submit} className="space-y-3">
@@ -107,8 +108,8 @@ export function InviteModal() {
         </form>
 
         <p className="text-[11px] leading-relaxed text-ink-400">
-          We don&rsquo;t SMS your friends — we just record the numbers so we
-          know you&rsquo;re bringing real people.
+          We don&rsquo;t text your friends — we just record the numbers so we
+          know it&rsquo;s real people.
         </p>
       </div>
     </Modal>

@@ -5,17 +5,17 @@ export function Hero() {
     <section className="relative overflow-hidden">
       <div className="mx-auto max-w-6xl px-6 pb-24 pt-20 sm:pt-28 lg:pt-36">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-ink-500 animate-fade-up [animation-delay:50ms] opacity-0">
-          Group-buy at factory prices
+          Direct from the manufacturer
         </p>
         <h1 className="font-display text-[40px] font-semibold leading-[1.02] tracking-tight text-ink-950 sm:text-6xl lg:text-7xl animate-fade-up [animation-delay:120ms] opacity-0">
-          Buy smarter.
+          Same factories.
           <br />
-          <span className="text-ink-400">Pay less together.</span>
+          <span className="text-ink-400">No brand tax.</span>
         </h1>
         <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-ink-600 animate-fade-up [animation-delay:240ms] opacity-0">
-          Boringgg is a 7-day group-buy. Join early to lock in the lowest tier
-          — when the batch fills, we place the order with the factory and ship
-          to everyone. No middlemen, no markup.
+          Boringgg connects you to the manufacturers behind the brands you
+          already trust. Same materials, same machines, same QC — just without
+          the retail markup.
         </p>
         <div className="mt-10 flex items-center gap-3 animate-fade-up [animation-delay:340ms] opacity-0">
           <a
